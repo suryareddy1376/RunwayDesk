@@ -38,10 +38,15 @@ const INR = new Intl.NumberFormat('en-IN', {
 const inr = (n: number): string => INR.format(n);
 
 const focusRing =
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2';
-const buttonClass = `min-h-11 rounded-lg border border-slate-300 bg-white px-4 text-sm font-medium text-slate-800 hover:bg-slate-50 ${focusRing}`;
-const inputClass = `min-h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 ${focusRing}`;
-const cardClass = 'rounded-xl border border-slate-200 bg-white p-6';
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue focus-visible:ring-offset-2';
+const buttonBase =
+  'button-sm inline-flex items-center justify-center rounded-lg border px-3 py-1.5 active:scale-[0.98] transition-transform duration-150 ease-emphasis';
+const buttonClass = `${buttonBase} border-line bg-surface text-ink hover:bg-subtle ${focusRing}`;
+const activeButtonClass = `${buttonBase} border-line-strong bg-subtle text-ink ${focusRing}`;
+const inputClass = `h-9 rounded-lg border border-line bg-surface px-3 text-sm text-ink focus:border-blue focus:outline-none`;
+const cardClass = 'rounded-xl border border-line bg-surface p-5';
+const kpiLabelClass = 'text-[11px] font-medium uppercase tracking-wide text-ink-muted';
+const kpiFigureClass = 'font-mono text-2xl font-semibold tabular-nums text-ink';
 
 /** An invoice is overdue when its status says so, or its due date has passed and it is not paid. */
 function isOverdue(inv: InvoiceRow, today: string): boolean {
@@ -215,8 +220,8 @@ export function OverviewView({ openChase, simulationRequest }: OverviewViewProps
     simulated: simulated ? simulated.days[i]?.closingBalance : undefined,
   }));
 
-  const baselineColor = active ? '#94a3b8' : '#059669';
-  const simulatedColor = simulated && simulated.lowestBalance >= 0 ? '#059669' : '#e11d48';
+  const baselineColor = '#6B7280';
+  const simulatedColor = '#059669';
 
   const setCustomDelay = (invoiceNumber: string, raw: string) => {
     setCustomDelays((prev) => {
@@ -251,46 +256,45 @@ export function OverviewView({ openChase, simulationRequest }: OverviewViewProps
   return (
     <div className="flex flex-col gap-6">
       {/* 1. KPI strip */}
-      <section aria-label="Key figures" className="grid grid-cols-1 gap-6 xl:grid-cols-4">
+      <section aria-label="Key figures" className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className={cardClass}>
-          <p className="text-sm text-slate-600">Current Cash</p>
-          <p className="mt-2 text-2xl font-semibold tabular-nums text-slate-900">
-            {inr(settings.opening_balance)}
-          </p>
+          <p className={kpiLabelClass}>Current Cash</p>
+          <p className={`mt-2 ${kpiFigureClass}`}>{inr(settings.opening_balance)}</p>
         </div>
         <div className={cardClass}>
-          <p className="text-sm text-slate-600">Total Owed</p>
-          <p className="mt-2 text-2xl font-semibold tabular-nums text-slate-900">{inr(totalOwed)}</p>
+          <p className={kpiLabelClass}>Total Owed</p>
+          <p className={`mt-2 ${kpiFigureClass}`}>{inr(totalOwed)}</p>
         </div>
         <div className={cardClass}>
-          <p className="text-sm text-slate-600">Overdue Now</p>
-          <p className="mt-2 text-2xl font-semibold tabular-nums text-rose-700">
+          <p className={kpiLabelClass}>Overdue Now</p>
+          <p className="mt-2 font-mono text-2xl font-semibold tabular-nums text-rose">
             {overdueInvoices.length} {overdueInvoices.length === 1 ? 'invoice' : 'invoices'}
           </p>
-          <p className="mt-1 text-sm tabular-nums text-rose-700">{inr(overdueTotal)}</p>
+          <p className="body-sm mt-1 tabular-nums text-rose">{inr(overdueTotal)}</p>
         </div>
         <div className={cardClass}>
-          <p className="text-sm text-slate-600">Lowest Projected Cash</p>
+          <p className={kpiLabelClass}>Lowest Projected Cash</p>
           <p
-            className={`mt-2 text-2xl font-semibold tabular-nums ${
-              baseline.lowestBalance < 0 ? 'text-rose-700' : 'text-emerald-700'
+            className={`mt-2 font-mono text-2xl font-semibold tabular-nums ${
+              baseline.lowestBalance < 0 ? 'text-rose' : 'text-emerald'
             }`}
           >
             {inr(baseline.lowestBalance)}
           </p>
-          <p className="mt-1 text-sm text-slate-600">On {dateOfDay(baseline)} (baseline, {horizonDays} days)</p>
+          <p className="body-sm mt-1 text-ink-secondary">On {dateOfDay(baseline)} (baseline, {horizonDays} days)</p>
         </div>
       </section>
 
+
       {/* 2. Alerts queue */}
       <section aria-labelledby="alerts-heading" className={cardClass}>
-        <h2 id="alerts-heading" className="text-lg font-semibold text-slate-900">
+        <h2 id="alerts-heading" className="title-md text-ink">
           Alerts Queue
         </h2>
         {alerts.length === 0 ? (
-          <p className="mt-3 text-sm text-slate-600">No alerts. Cash position looks stable.</p>
+          <p className="mt-3 text-sm text-ink-secondary">No alerts. Cash position looks stable.</p>
         ) : (
-          <ul className="mt-4 flex flex-col gap-4">
+          <ul className="mt-4 flex flex-col gap-3">
             {alerts.map((alert) => {
               const action = alert.action;
               const invoiceId = action.invoiceNumber
@@ -298,20 +302,20 @@ export function OverviewView({ openChase, simulationRequest }: OverviewViewProps
                 : undefined;
               const severityClass =
                 alert.severity === 'high'
-                  ? 'text-rose-700'
+                  ? 'text-rose'
                   : alert.severity === 'medium'
-                    ? 'text-amber-700'
-                    : 'text-emerald-700';
+                    ? 'text-amber'
+                    : 'text-emerald';
               const severityLabel =
                 alert.severity === 'high' ? 'High' : alert.severity === 'medium' ? 'Medium' : 'Low';
 
               return (
                 <li
                   key={alert.id}
-                  className="flex flex-col gap-3 rounded-lg border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-3 rounded-lg border border-line p-4 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-slate-900">{alert.message}</p>
+                    <p className="title-sm text-ink">{alert.message}</p>
                     <p className={`mt-1 text-xs font-medium ${severityClass}`}>
                       Severity: {severityLabel}
                       {action.invoiceNumber ? ` | Invoice ${action.invoiceNumber}` : ''}
@@ -349,6 +353,7 @@ export function OverviewView({ openChase, simulationRequest }: OverviewViewProps
         )}
       </section>
 
+
       {/* 3. Forecast */}
       <section
         id="forecast"
@@ -357,7 +362,7 @@ export function OverviewView({ openChase, simulationRequest }: OverviewViewProps
         className={`${cardClass} scroll-mt-6`}
       >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h2 id="forecast-heading" className="text-lg font-semibold text-slate-900">
+          <h2 id="forecast-heading" className="title-md text-ink">
             Cash Forecast
           </h2>
           <div role="group" aria-label="Forecast horizon" className="flex flex-wrap gap-2">
@@ -367,7 +372,7 @@ export function OverviewView({ openChase, simulationRequest }: OverviewViewProps
                 type="button"
                 aria-pressed={horizonDays === h}
                 onClick={() => setHorizonDays(h)}
-                className={`${buttonClass} ${horizonDays === h ? 'bg-slate-900 text-white hover:bg-slate-800' : ''}`}
+                className={horizonDays === h ? activeButtonClass : buttonClass}
               >
                 {h} days
               </button>
@@ -386,24 +391,62 @@ export function OverviewView({ openChase, simulationRequest }: OverviewViewProps
           </p>
         </div>
 
-        <div className="mt-4 h-[280px] w-full">
+        <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-ink-secondary">
+          <span className="flex items-center gap-2">
+            <svg aria-hidden="true" width="24" height="8" viewBox="0 0 24 8">
+              <line x1="0" y1="4" x2="24" y2="4" stroke="#6B7280" strokeWidth="2" strokeDasharray="6 4" />
+            </svg>
+            Baseline
+          </span>
+          <span className="flex items-center gap-2">
+            <svg aria-hidden="true" width="24" height="8" viewBox="0 0 24 8">
+              <line x1="0" y1="4" x2="24" y2="4" stroke="#059669" strokeWidth="2.5" />
+            </svg>
+            Simulated
+          </span>
+          <span className="flex items-center gap-2">
+            <svg aria-hidden="true" width="24" height="8" viewBox="0 0 24 8">
+              <line x1="0" y1="4" x2="24" y2="4" stroke="#D97706" strokeWidth="2" strokeDasharray="4 4" />
+            </svg>
+            Safe Buffer
+          </span>
+          <span className="flex items-center gap-2">
+            <svg aria-hidden="true" width="24" height="8" viewBox="0 0 24 8">
+              <line x1="0" y1="4" x2="24" y2="4" stroke="#E11D48" strokeWidth="1.5" />
+            </svg>
+            ₹0 Danger Line
+          </span>
+        </div>
+
+        <div className="mt-3 h-[280px] w-full min-w-0 overflow-hidden">
           <ResponsiveContainer width="100%" height={280}>
-            <LineChart data={chartRows} margin={{ top: 16, right: 16, bottom: 8, left: 8 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis dataKey="date" tick={{ fontSize: 12 }} minTickGap={24} />
-              <YAxis tick={{ fontSize: 12 }} width={110} tickFormatter={(v: number) => inr(v)} />
+            <LineChart data={chartRows} margin={{ top: 12, right: 24, left: 8, bottom: 8 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#E2E5E9" />
+              <XAxis dataKey="date" tick={{ fontSize: 12, fill: '#6B7280' }} minTickGap={24} />
+              <YAxis
+                tick={{ fontSize: 12, fill: '#6B7280' }}
+                width={110}
+                tickFormatter={(v: number) => inr(v)}
+              />
               <Tooltip formatter={(value) => inr(Number(value))} />
               <ReferenceLine
                 y={0}
                 stroke="#e11d48"
-                strokeDasharray="6 4"
-                label={{ value: '₹0 Danger Line', position: 'insideTopLeft', fill: '#e11d48', fontSize: 12 }}
-              />
+                strokeWidth={2}
+                label={{
+                  value: '₹0 Danger Line',
+                  position: 'insideBottomLeft',
+                  fill: '#e11d48',
+                  fontSize: 12,
+                  dy: -12,
+                  dx: 6,
+                }}
+/>
               <ReferenceLine
                 y={settings.safe_buffer_amount}
-                stroke="#d97706"
-                strokeDasharray="6 4"
-                label={{ value: 'Safe Buffer', position: 'insideTopRight', fill: '#d97706', fontSize: 12 }}
+                stroke="#D97706"
+                strokeDasharray="4 4"
+                label={{ value: 'Safe Buffer', position: 'insideTopRight', fill: '#D97706', fontSize: 12 }}
               />
               <Line
                 type="monotone"
@@ -411,7 +454,7 @@ export function OverviewView({ openChase, simulationRequest }: OverviewViewProps
                 name="Baseline"
                 stroke={baselineColor}
                 strokeWidth={2}
-                strokeDasharray={active ? '6 4' : undefined}
+                strokeDasharray="6 4"
                 dot={false}
                 isAnimationActive={false}
               />
@@ -431,36 +474,36 @@ export function OverviewView({ openChase, simulationRequest }: OverviewViewProps
         </div>
 
         {simulated && (
-          <dl className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <div className="rounded-lg border border-slate-200 p-4">
-              <dt className="text-sm text-slate-600">Baseline Lowest</dt>
-              <dd className="mt-1 text-lg font-semibold tabular-nums text-slate-900">
+          <dl className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <div className="rounded-lg border border-line bg-surface p-4">
+              <dt className="text-xs text-ink-muted">Baseline Lowest</dt>
+              <dd className="num-inr mt-1 text-lg font-semibold text-ink">
                 {inr(baseline.lowestBalance)}
               </dd>
             </div>
-            <div className="rounded-lg border border-slate-200 p-4">
-              <dt className="text-sm text-slate-600">Simulated Lowest</dt>
+            <div className="rounded-lg border border-line bg-surface p-4">
+              <dt className="text-xs text-ink-muted">Simulated Lowest</dt>
               <dd
-                className={`mt-1 text-lg font-semibold tabular-nums ${
-                  simulated.lowestBalance < 0 ? 'text-rose-700' : 'text-emerald-700'
+                className={`num-inr mt-1 text-lg font-semibold ${
+                  simulated.lowestBalance < 0 ? 'text-rose' : 'text-emerald'
                 }`}
               >
                 {inr(simulated.lowestBalance)}
               </dd>
             </div>
-            <div className="rounded-lg border border-slate-200 p-4">
-              <dt className="text-sm text-slate-600">Cash Shortfall</dt>
+            <div className="rounded-lg border border-line bg-surface p-4">
+              <dt className="text-xs text-ink-muted">Cash Shortfall</dt>
               <dd
-                className={`mt-1 text-lg font-semibold tabular-nums ${
-                  simulated.cashShortfall > 0 ? 'text-rose-700' : 'text-emerald-700'
+                className={`num-inr mt-1 text-lg font-semibold ${
+                  simulated.cashShortfall > 0 ? 'text-rose' : 'text-emerald'
                 }`}
               >
                 {inr(simulated.cashShortfall)}
               </dd>
             </div>
-            <div className="rounded-lg border border-slate-200 p-4">
-              <dt className="text-sm text-slate-600">Exact Crunch Date</dt>
-              <dd className="mt-1 text-lg font-semibold text-slate-900">
+            <div className="rounded-lg border border-line bg-surface p-4">
+              <dt className="text-xs text-ink-muted">Exact Crunch Date</dt>
+              <dd className="mt-1 text-lg font-semibold text-ink">
                 {simulated.cashShortfall === 0 ? 'None in window' : dateOfDay(simulated)}
               </dd>
             </div>
@@ -468,27 +511,32 @@ export function OverviewView({ openChase, simulationRequest }: OverviewViewProps
         )}
       </section>
 
+
       {/* 4. What-If controls */}
       <section aria-labelledby="whatif-heading" className={`${cardClass} flex flex-col gap-6`}>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h2 id="whatif-heading" className="text-lg font-semibold text-slate-900">
+          <h2 id="whatif-heading" className="title-md text-ink">
             What-If Controls
           </h2>
           <button type="button" className={buttonClass} onClick={resetSimulation}>
             Reset Simulation
           </button>
         </div>
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-ink-secondary">
           Simulations are temporary and are never saved to the database.
         </p>
 
         <fieldset className="flex flex-col gap-3">
-          <legend className="text-sm font-semibold text-slate-900">Preset</legend>
+          <legend className="text-sm font-medium text-ink">Preset</legend>
           <div className="flex flex-wrap gap-3">
             {PRESETS.map((p) => (
               <label
                 key={p.value}
-                className="flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-slate-300 px-4 text-sm text-slate-800"
+                className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-1.5 text-sm ${
+                  preset === p.value
+                    ? 'border-line-strong bg-subtle text-ink'
+                    : 'border-line bg-surface text-ink-secondary hover:bg-subtle'
+                }`}
               >
                 <input
                   type="radio"
@@ -496,7 +544,7 @@ export function OverviewView({ openChase, simulationRequest }: OverviewViewProps
                   value={p.value}
                   checked={preset === p.value}
                   onChange={() => setPreset(p.value)}
-                  className={`h-4 w-4 accent-indigo-600 ${focusRing}`}
+                  className={`h-4 w-4 accent-blue ${focusRing}`}
                 />
                 {p.label}
               </label>
@@ -504,7 +552,7 @@ export function OverviewView({ openChase, simulationRequest }: OverviewViewProps
           </div>
 
           {preset === 'key-client' && (
-            <label className="flex flex-col gap-2 text-sm text-slate-800">
+            <label className="flex flex-col gap-2 text-sm text-ink">
               <span>
                 {KEY_CLIENT_INVOICE} delay: <span className="tabular-nums">{keyClientDelay}</span> days
               </span>
@@ -515,13 +563,13 @@ export function OverviewView({ openChase, simulationRequest }: OverviewViewProps
                 step={1}
                 value={keyClientDelay}
                 onChange={(e) => setKeyClientDelay(Number(e.target.value))}
-                className={`min-h-11 w-full accent-indigo-600 ${focusRing}`}
+                className={`w-full accent-blue ${focusRing}`}
               />
             </label>
           )}
 
           {preset === 'bad-day' && (
-            <label className="flex flex-col gap-2 text-sm text-slate-800">
+            <label className="flex flex-col gap-2 text-sm text-ink">
               <span>
                 Delay on all sent, not-yet-due invoices:{' '}
                 <span className="tabular-nums">{badDayDelay}</span> days
@@ -533,38 +581,38 @@ export function OverviewView({ openChase, simulationRequest }: OverviewViewProps
                 step={1}
                 value={badDayDelay}
                 onChange={(e) => setBadDayDelay(Number(e.target.value))}
-                className={`min-h-11 w-full accent-indigo-600 ${focusRing}`}
+                className={`w-full accent-blue ${focusRing}`}
               />
             </label>
           )}
         </fieldset>
 
         <div className="flex flex-col gap-2">
-          <label className="flex min-h-11 items-center gap-3 text-sm text-slate-800">
+          <label className="flex items-center gap-3 text-sm text-ink">
             <input
               type="checkbox"
               checked={recover && inv104Overdue}
               disabled={!inv104Overdue}
               onChange={(e) => setRecover(e.target.checked)}
-              className={`h-4 w-4 accent-indigo-600 ${focusRing} disabled:opacity-50`}
+              className={`h-4 w-4 accent-blue ${focusRing} disabled:opacity-50`}
             />
             Collect overdue {COLLECT_INVOICE} ({inr(inv104?.amount ?? 55000)}) on Day 3
           </label>
           {!inv104Overdue && (
-            <p className="text-xs text-slate-600">
+            <p className="text-xs text-ink-secondary">
               {COLLECT_INVOICE} is not overdue in the current data, so this option is unavailable.
             </p>
           )}
         </div>
 
         <fieldset className="flex flex-col gap-3">
-          <legend className="text-sm font-semibold text-slate-900">Custom invoice delays (days)</legend>
+          <legend className="text-sm font-medium text-ink">Custom invoice delays (days)</legend>
           {unpaid.length === 0 ? (
-            <p className="text-sm text-slate-600">No unpaid invoices.</p>
+            <p className="text-sm text-ink-secondary">No unpaid invoices.</p>
           ) : (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {unpaid.map((inv) => (
-                <label key={inv.id} className="flex flex-col gap-1 text-sm text-slate-800">
+                <label key={inv.id} className="flex flex-col gap-1 text-sm text-ink">
                   <span>{inv.invoice_number}</span>
                   <input
                     type="number"
@@ -583,9 +631,9 @@ export function OverviewView({ openChase, simulationRequest }: OverviewViewProps
         </fieldset>
 
         <fieldset className="flex flex-col gap-3">
-          <legend className="text-sm font-semibold text-slate-900">One-time surprise expense</legend>
+          <legend className="text-sm font-medium text-ink">One-time surprise expense</legend>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <label className="flex flex-col gap-1 text-sm text-slate-800">
+            <label className="flex flex-col gap-1 text-sm text-ink">
               <span>Amount (INR)</span>
               <input
                 type="number"
@@ -596,7 +644,7 @@ export function OverviewView({ openChase, simulationRequest }: OverviewViewProps
                 className={`${inputClass} tabular-nums`}
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm text-slate-800">
+            <label className="flex flex-col gap-1 text-sm text-ink">
               <span>Day offset (0 to {horizonDays})</span>
               <input
                 type="number"
@@ -616,11 +664,11 @@ export function OverviewView({ openChase, simulationRequest }: OverviewViewProps
 
       {/* 5. Daily cash-event ledger */}
       <section aria-labelledby="ledger-heading" className={cardClass}>
-        <h2 id="ledger-heading" className="text-lg font-semibold text-slate-900">
+        <h2 id="ledger-heading" className="title-md text-ink">
           Daily Cash Events
         </h2>
         {ledgerRows.length === 0 ? (
-          <p className="mt-3 text-sm text-slate-600">No cash events in this window.</p>
+          <p className="mt-3 text-sm text-ink-secondary">No cash events in this window.</p>
         ) : (
           <div className="mt-4 max-h-72 overflow-x-auto overflow-y-auto">
             <table className="w-full min-w-[480px] border-collapse text-sm">
@@ -628,27 +676,27 @@ export function OverviewView({ openChase, simulationRequest }: OverviewViewProps
                 Daily cash inflows, outflows and running balance for the next {horizonDays} days
                 {active ? ' (simulated)' : ' (baseline)'}
               </caption>
-              <thead className="sticky top-0 bg-white">
-                <tr className="border-b border-slate-200 text-left text-slate-600">
-                  <th scope="col" className="py-2 pr-4 font-medium">Date</th>
-                  <th scope="col" className="py-2 pr-4 text-right font-medium">Inflow</th>
-                  <th scope="col" className="py-2 pr-4 text-right font-medium">Outflow</th>
-                  <th scope="col" className="py-2 text-right font-medium">Running balance</th>
+              <thead className="sticky top-0">
+                <tr className="border-b border-line text-left">
+                  <th scope="col" className="bg-subtle py-2 pr-4 text-xs font-medium uppercase tracking-wide text-ink-muted">Date</th>
+                  <th scope="col" className="bg-subtle py-2 pr-4 text-right text-xs font-medium uppercase tracking-wide text-ink-muted">Inflow</th>
+                  <th scope="col" className="bg-subtle py-2 pr-4 text-right text-xs font-medium uppercase tracking-wide text-ink-muted">Outflow</th>
+                  <th scope="col" className="bg-subtle py-2 text-right text-xs font-medium uppercase tracking-wide text-ink-muted">Running balance</th>
                 </tr>
               </thead>
               <tbody>
                 {ledgerRows.map((row) => (
-                  <tr key={row.day} className="border-b border-slate-100">
-                    <td className="py-2 pr-4 text-slate-900">{row.date}</td>
-                    <td className="py-2 pr-4 text-right tabular-nums text-emerald-700">
+                  <tr key={row.day} className="border-b border-line">
+                    <td className="py-2 pr-4 text-ink">{row.date}</td>
+                    <td className="num-inr py-2 pr-4 text-right text-emerald">
                       {row.inflow > 0 ? inr(row.inflow) : '-'}
                     </td>
-                    <td className="py-2 pr-4 text-right tabular-nums text-rose-700">
+                    <td className="num-inr py-2 pr-4 text-right text-rose">
                       {row.outflow > 0 ? inr(row.outflow) : '-'}
                     </td>
                     <td
-                      className={`py-2 text-right tabular-nums ${
-                        row.closingBalance < 0 ? 'text-rose-700' : 'text-slate-900'
+                      className={`num-inr py-2 text-right ${
+                        row.closingBalance < 0 ? 'text-rose' : 'text-ink'
                       }`}
                     >
                       {inr(row.closingBalance)}

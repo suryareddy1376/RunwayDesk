@@ -13,7 +13,10 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const WHATSAPP_PATTERN = /^\+?\d+$/;
 
 const INPUT_CLASS =
-  "mt-1 block w-full min-h-11 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/30";
+  "mt-1 block h-9 w-full rounded-lg border border-line bg-surface px-3 text-sm text-ink focus:border-blue focus:outline-none focus-visible:ring-2 focus-visible:ring-blue/30";
+
+const TEXTAREA_CLASS =
+  "mt-1 block w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-blue focus:outline-none focus-visible:ring-2 focus-visible:ring-blue/30";
 
 /** Sum of unpaid (sent or overdue) invoice amounts keyed by client_id. */
 export function unpaidOwedByClient(invoices: Invoice[]): Record<string, number> {
@@ -103,6 +106,11 @@ function AddClientDialog({ onClose, onSaved, refresh }: AddClientDialogProps) {
     setValues((prev) => ({ ...prev, [field]: value }));
   }
 
+  function dismissSummary() {
+    setErrors({});
+    setSubmitError(null);
+  }
+
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (event.key === "Escape") {
       event.stopPropagation();
@@ -144,43 +152,47 @@ function AddClientDialog({ onClose, onSaved, refresh }: AddClientDialogProps) {
   const hasSummary = errorList.length > 0 || submitError !== null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40">
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
         onKeyDown={handleKeyDown}
-        className="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl"
+        className="mx-4 w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl border border-line bg-surface p-6"
       >
-        <div className="flex items-center justify-between">
-          <h3 id={titleId} className="text-lg font-semibold text-slate-900">
-            Add client
-          </h3>
-          <button
-            type="button"
-            onClick={onClose}
-            className="min-h-11 rounded-lg px-3 text-sm font-medium text-slate-600 hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/30"
-          >
-            Cancel
-          </button>
-        </div>
+        <h3 id={titleId} className="text-xl font-semibold text-ink">
+          Add client
+        </h3>
 
         {hasSummary && (
-          <div role="alert" className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
-            {submitError ? <p>{submitError}</p> : <p>Please fix the following:</p>}
-            {errorList.length > 0 && (
-              <ul className="mt-1 list-disc pl-5">
-                {errorList.map((msg) => (
-                  <li key={msg}>{msg}</li>
-                ))}
-              </ul>
-            )}
+          <div
+            role="alert"
+            className="mt-4 flex items-start justify-between gap-3 rounded-lg border border-rose/30 bg-rose/5 px-3 py-2 text-sm text-rose"
+          >
+            <div>
+              {submitError ? <p>{submitError}</p> : <p>Please fix the following:</p>}
+              {errorList.length > 0 && (
+                <ul className="mt-1 list-disc pl-5">
+                  {errorList.map((msg) => (
+                    <li key={msg}>{msg}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={dismissSummary}
+              aria-label="Dismiss message"
+              className="shrink-0 rounded-lg px-2 py-1 text-xs font-medium text-rose hover:bg-rose/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose/30"
+            >
+              Dismiss
+            </button>
           </div>
         )}
 
         <form onSubmit={handleSubmit} noValidate className="mt-4 space-y-4">
           <div>
-            <label htmlFor={nameId} className="block text-sm font-medium text-slate-700">
+            <label htmlFor={nameId} className="block text-xs font-medium text-ink-secondary">
               Name <span aria-hidden="true">*</span>
               <span className="sr-only">(required)</span>
             </label>
@@ -196,14 +208,14 @@ function AddClientDialog({ onClose, onSaved, refresh }: AddClientDialogProps) {
               className={INPUT_CLASS}
             />
             {errors.name && (
-              <p id={`${nameId}-error`} className="mt-1 text-sm text-red-700">
+              <p id={`${nameId}-error`} className="mt-1 text-sm text-rose">
                 {errors.name}
               </p>
             )}
           </div>
 
           <div>
-            <label htmlFor={emailId} className="block text-sm font-medium text-slate-700">
+            <label htmlFor={emailId} className="block text-xs font-medium text-ink-secondary">
               Email
             </label>
             <input
@@ -216,17 +228,17 @@ function AddClientDialog({ onClose, onSaved, refresh }: AddClientDialogProps) {
               className={INPUT_CLASS}
             />
             {errors.email && (
-              <p id={`${emailId}-error`} className="mt-1 text-sm text-red-700">
+              <p id={`${emailId}-error`} className="mt-1 text-sm text-rose">
                 {errors.email}
               </p>
             )}
           </div>
 
           <div>
-            <label htmlFor={whatsappId} className="block text-sm font-medium text-slate-700">
+            <label htmlFor={whatsappId} className="block text-xs font-medium text-ink-secondary">
               WhatsApp number
             </label>
-            <p id={`${whatsappId}-hint`} className="text-xs text-slate-500">
+            <p id={`${whatsappId}-hint`} className="text-xs text-ink-muted">
               Digits with country code, for example 919812345678.
             </p>
             <input
@@ -242,14 +254,14 @@ function AddClientDialog({ onClose, onSaved, refresh }: AddClientDialogProps) {
               className={INPUT_CLASS}
             />
             {errors.whatsapp && (
-              <p id={`${whatsappId}-error`} className="mt-1 text-sm text-red-700">
+              <p id={`${whatsappId}-error`} className="mt-1 text-sm text-rose">
                 {errors.whatsapp}
               </p>
             )}
           </div>
 
           <div>
-            <label htmlFor={delayId} className="block text-sm font-medium text-slate-700">
+            <label htmlFor={delayId} className="block text-xs font-medium text-ink-secondary">
               Avg delay days
             </label>
             <input
@@ -264,14 +276,14 @@ function AddClientDialog({ onClose, onSaved, refresh }: AddClientDialogProps) {
               className={INPUT_CLASS}
             />
             {errors.avgDelay && (
-              <p id={`${delayId}-error`} className="mt-1 text-sm text-red-700">
+              <p id={`${delayId}-error`} className="mt-1 text-sm text-rose">
                 {errors.avgDelay}
               </p>
             )}
           </div>
 
           <div>
-            <label htmlFor={notesId} className="block text-sm font-medium text-slate-700">
+            <label htmlFor={notesId} className="block text-xs font-medium text-ink-secondary">
               Notes
             </label>
             <textarea
@@ -279,15 +291,22 @@ function AddClientDialog({ onClose, onSaved, refresh }: AddClientDialogProps) {
               rows={3}
               value={values.notes}
               onChange={(e) => update("notes", e.target.value)}
-              className={INPUT_CLASS}
+              className={TEXTAREA_CLASS}
             />
           </div>
 
           <div className="flex justify-end gap-3 pt-2">
             <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg border border-line bg-surface px-3 py-2 text-sm font-medium text-ink hover:bg-subtle active:scale-[0.98] transition-transform duration-150 ease-emphasis focus:outline-none focus-visible:ring-2 focus-visible:ring-blue/30"
+            >
+              Cancel
+            </button>
+            <button
               type="submit"
               disabled={saving}
-              className="min-h-11 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/50"
+              className="rounded-lg bg-blue px-3 py-2 text-sm font-medium text-white hover:bg-blue/90 active:scale-[0.98] transition-transform duration-150 ease-emphasis disabled:cursor-not-allowed disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue/30"
             >
               {saving ? "Saving..." : "Save client"}
             </button>
@@ -317,8 +336,8 @@ export function ClientsView() {
     <section className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-semibold text-slate-900">Clients</h2>
-          <p className="text-sm text-slate-600 tabular-nums">
+          <h2 className="text-xl font-semibold text-ink">Clients</h2>
+          <p className="text-sm text-ink-secondary tabular-nums">
             {count} {count === 1 ? "client" : "clients"} in your workspace
           </p>
         </div>
@@ -326,45 +345,70 @@ export function ClientsView() {
           ref={triggerRef}
           type="button"
           onClick={() => setDialogOpen(true)}
-          className="min-h-11 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/50"
+          className="rounded-lg bg-blue px-3 py-2 text-sm font-medium text-white hover:bg-blue/90 active:scale-[0.98] transition-transform duration-150 ease-emphasis focus:outline-none focus-visible:ring-2 focus-visible:ring-blue/30"
         >
           + Add Client
         </button>
       </div>
 
       {count === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-600">
-          No clients yet. Add your first client to start tracking receivables.
+        <div className="flex flex-col items-center gap-4 rounded-xl border border-line bg-surface p-8 text-center">
+          <div className="space-y-1">
+            <h3 className="text-base font-semibold text-ink">No clients yet.</h3>
+            <p className="text-sm text-ink-secondary">Add your first client to start tracking receivables.</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setDialogOpen(true)}
+            className="rounded-lg bg-blue px-3 py-2 text-sm font-medium text-white hover:bg-blue/90 active:scale-[0.98] transition-transform duration-150 ease-emphasis focus:outline-none focus-visible:ring-2 focus-visible:ring-blue/30"
+          >
+            + Add Client
+          </button>
         </div>
       ) : (
-        <ul className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {rows.map(({ client, owed }) => (
-            <li key={client.id} className="rounded-xl border border-slate-200 bg-white p-6">
-              <h3 className="text-lg font-semibold text-slate-900">{client.name}</h3>
-              <p className="mt-2 text-sm text-slate-700">
-                <span className="text-slate-500">Email: </span>
-                {client.email ?? "Not set"}
-              </p>
-              <p className="mt-1 text-sm text-slate-700 tabular-nums">
-                <span className="text-slate-500">WhatsApp: </span>
-                {client.whatsapp ?? "Not set"}
-              </p>
-              <p className="mt-1 text-sm text-slate-700 tabular-nums">
-                Avg delay: {client.avg_delay_days} days
-              </p>
+            <li key={client.id} className="flex min-w-0 flex-col gap-4 rounded-xl border border-line bg-surface p-5">
+              <h3 className="truncate text-lg font-semibold text-ink">{client.name}</h3>
+              <div className="space-y-1">
+                <p className="text-sm text-ink-secondary">
+                  <span className="text-ink-muted">Email: </span>
+                  {client.email ? (
+                    <a href={`mailto:${client.email}`} className="break-all text-sm text-blue hover:underline">
+                      {client.email}
+                    </a>
+                  ) : (
+                    "Not set"
+                  )}
+                </p>
+                <p className="text-sm text-ink-secondary tabular-nums">
+                  <span className="text-ink-muted">WhatsApp: </span>
+                  {client.whatsapp ? (
+                    <a
+                      href={`https://wa.me/${client.whatsapp.replace(/\D/g, "")}`}
+                      className="break-all text-sm text-blue hover:underline"
+                    >
+                      {client.whatsapp}
+                    </a>
+                  ) : (
+                    "Not set"
+                  )}
+                </p>
+                <p className="inline-flex w-fit items-center rounded-full border border-line bg-subtle px-2 py-0.5 text-xs font-medium text-ink-secondary tabular-nums">
+                  Avg delay: {client.avg_delay_days} days
+                </p>
+              </div>
 
-              <div className="mt-4 border-t border-slate-100 pt-4">
-                <p className="text-sm text-slate-500">Total unpaid owed</p>
+              <div className="border-t border-line pt-4">
+                <p className="text-xs uppercase text-ink-muted">Total unpaid owed</p>
                 {owed > 0 ? (
-                  <p className="text-xl font-semibold text-amber-700 tabular-nums">
-                    {inrFormatter.format(owed)}
-                  </p>
+                  <p className="text-lg font-semibold text-ink tabular-nums">{inrFormatter.format(owed)}</p>
                 ) : (
-                  <p className="text-xl font-semibold text-emerald-700">All clear</p>
+                  <p className="text-lg font-semibold text-ink">All clear</p>
                 )}
               </div>
 
-              <p className="mt-4 text-sm text-slate-600">
+              <p className="line-clamp-3 text-sm text-ink-secondary">
                 {client.notes && client.notes.trim() ? client.notes : "No notes"}
               </p>
             </li>

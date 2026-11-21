@@ -23,19 +23,21 @@ const dateTimeFormatter = new Intl.DateTimeFormat("en-IN", {
   timeStyle: "short",
 });
 
-const CARD_CLASS = "rounded-xl border border-slate-200 bg-white p-6";
+const CARD_CLASS = "overflow-x-auto rounded-xl border border-line bg-surface";
 const FOCUS_RING =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2";
-const BUTTON_BASE = `inline-flex min-h-11 items-center justify-center rounded-md px-4 text-sm font-medium transition-colors ${FOCUS_RING} disabled:cursor-not-allowed disabled:opacity-50`;
-const PRIMARY_BUTTON = `${BUTTON_BASE} bg-slate-900 text-white hover:bg-slate-800`;
-const SECONDARY_BUTTON = `${BUTTON_BASE} border border-slate-300 bg-white text-slate-900 hover:bg-slate-50`;
-const INPUT_CLASS = `mt-1 block w-full min-h-11 rounded-md border px-3 py-2 text-sm text-slate-900 ${FOCUS_RING}`;
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue focus-visible:ring-offset-2";
+const BUTTON_BASE = `inline-flex items-center justify-center rounded-lg font-medium transition-transform duration-150 ease-emphasis active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 ${FOCUS_RING}`;
+const PRIMARY_BUTTON = `${BUTTON_BASE} button-md bg-blue px-3 py-2 text-white hover:bg-blue/90`;
+const SECONDARY_BUTTON = `${BUTTON_BASE} button-md border border-line bg-surface px-3 py-2 text-ink hover:bg-subtle`;
+const SECONDARY_SMALL_BUTTON = `${BUTTON_BASE} border border-line bg-surface px-2.5 py-1 text-xs text-ink hover:bg-subtle`;
+const GHOST_EMERALD_BUTTON = `${BUTTON_BASE} px-2.5 py-1 text-xs text-emerald hover:bg-emerald/5`;
+const INPUT_CLASS = `mt-1 block h-9 w-full rounded-lg border border-line bg-surface px-3 text-sm text-ink focus:border-blue focus:outline-none ${FOCUS_RING}`;
 
 const BUCKET_STYLES: Record<AgingBucketLabel, string> = {
-  [BUCKET_LABELS.current]: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
-  [BUCKET_LABELS.days1to7]: "bg-amber-50 text-amber-800 ring-amber-600/20",
-  [BUCKET_LABELS.days8to15]: "bg-orange-50 text-orange-800 ring-orange-600/20",
-  [BUCKET_LABELS.days15plus]: "bg-rose-50 text-rose-700 ring-rose-600/20",
+  [BUCKET_LABELS.current]: "border-line bg-subtle text-ink-secondary",
+  [BUCKET_LABELS.days1to7]: "border-amber/30 bg-amber/5 text-amber",
+  [BUCKET_LABELS.days8to15]: "border-amber/30 bg-amber/5 text-amber",
+  [BUCKET_LABELS.days15plus]: "border-rose/30 bg-rose/5 text-rose",
 };
 
 export type ReceivableSortKey =
@@ -215,7 +217,7 @@ export function ReceivablesView({ openChase }: ReceivablesViewProps) {
   return (
     <section className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h2 className="text-2xl font-semibold text-slate-900">Who Owes Me?</h2>
+        <h2 className="heading-md text-ink">Who Owes Me?</h2>
         <button
           ref={newInvoiceButtonRef}
           type="button"
@@ -226,113 +228,126 @@ export function ReceivablesView({ openChase }: ReceivablesViewProps) {
         </button>
       </div>
 
+      {rowError && (
+        <div
+          role="alert"
+          className="flex items-start justify-between gap-3 rounded-lg border border-rose/30 bg-rose/5 px-3 py-2 text-sm text-rose"
+        >
+          <span>{rowError.message}</span>
+          <button
+            type="button"
+            aria-label="Dismiss error"
+            onClick={() => setRowError(null)}
+            className={`${SECONDARY_SMALL_BUTTON} shrink-0`}
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
       <div className={CARD_CLASS}>
         {!data ? (
-          <p className="text-sm text-slate-600">Loading receivables...</p>
+          <p className="p-6 text-sm text-ink-secondary">Loading receivables...</p>
         ) : sorted.length === 0 ? (
-          <p className="text-sm text-slate-600">No open invoices. Everything is collected.</p>
+          <div className="flex flex-col items-center justify-center gap-3 px-6 py-12 text-center">
+            <p className="title-sm text-ink">No open invoices. Everything is collected.</p>
+            <button type="button" onClick={() => setDialogOpen(true)} className={PRIMARY_BUTTON}>
+              + New Invoice
+            </button>
+          </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full border-collapse text-left">
-              <caption className="mb-3 text-left text-base font-semibold text-slate-900">
-                Receivables
-              </caption>
-              <thead>
-                <tr className="border-b border-slate-200">
-                  {columns.map((col) => (
-                    <th
-                      key={col.label}
-                      scope="col"
-                      aria-sort={col.key ? ariaSortFor(col.key) : undefined}
-                      className={`px-3 py-2 text-xs font-medium uppercase tracking-wide text-slate-500 ${
-                        col.align === "right" ? "text-right" : "text-left"
-                      }`}
-                    >
-                      {col.key ? (
+          <table className="min-w-full border-collapse text-left text-sm">
+            <caption className="mb-3 text-left title-sm text-ink">Receivables</caption>
+            <thead>
+              <tr className="bg-subtle">
+                {columns.map((col) => (
+                  <th
+                    key={col.label}
+                    scope="col"
+                    aria-sort={col.key ? ariaSortFor(col.key) : undefined}
+                    className={`border-b border-line px-4 py-2.5 text-xs font-medium uppercase tracking-wide text-ink-muted ${
+                      col.align === "right" ? "text-right" : "text-left"
+                    }`}
+                  >
+                    {col.key ? (
+                      <button
+                        type="button"
+                        onClick={() => toggleSort(col.key as ReceivableSortKey)}
+                        className={`inline-flex items-center rounded px-1 text-xs font-medium uppercase tracking-wide text-ink-muted hover:text-ink ${FOCUS_RING}`}
+                      >
+                        {col.label}
+                        <span aria-hidden="true">{arrowFor(col.key)}</span>
+                      </button>
+                    ) : (
+                      col.label
+                    )}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {sorted.map((row) => {
+                const { invoice } = row;
+                const bucket = agingLabelFor(invoice, today);
+                const isPending = pendingId === invoice.id;
+                const overdue = row.days > 0;
+                const unit = Math.abs(row.days) === 1 ? "day" : "days";
+                return (
+                  <tr key={invoice.id} className="border-b border-line align-middle hover:bg-canvas">
+                    <td className="px-4 py-3 text-ink">{row.clientName}</td>
+                    <td className="px-4 py-3 text-ink-secondary">{invoice.invoice_number}</td>
+                    <td className="px-4 py-3 text-ink-secondary">{invoice.title}</td>
+                    <td className="num-inr px-4 py-3 text-right font-medium text-ink">
+                      {formatInr(invoice.amount)}
+                    </td>
+                    <td className="num-inr px-4 py-3 text-ink-secondary">
+                      {formatDueDate(invoice.due_date)}
+                    </td>
+                    <td className="num-inr px-4 py-3">
+                      {overdue ? (
+                        <span className="text-rose">
+                          {row.days} {unit} overdue
+                        </span>
+                      ) : (
+                        <span className={row.days >= -7 ? "text-amber" : "text-emerald"}>
+                          {-row.days} {unit} left
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-medium ${BUCKET_STYLES[bucket]}`}
+                      >
+                        {bucket}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-ink-secondary">
+                      {row.lastFollowUp ? dateTimeFormatter.format(new Date(row.lastFollowUp)) : "Never"}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap items-center gap-2">
                         <button
                           type="button"
-                          onClick={() => toggleSort(col.key as ReceivableSortKey)}
-                          className={`inline-flex min-h-11 items-center rounded-md px-1 text-xs font-medium uppercase tracking-wide text-slate-700 hover:text-slate-900 ${FOCUS_RING}`}
+                          onClick={() => openChase({ invoiceId: invoice.id, tone: "friendly" })}
+                          className={SECONDARY_SMALL_BUTTON}
                         >
-                          {col.label}
-                          <span aria-hidden="true">{arrowFor(col.key)}</span>
+                          Chase Now
                         </button>
-                      ) : (
-                        col.label
-                      )}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {sorted.map((row) => {
-                  const { invoice } = row;
-                  const bucket = agingLabelFor(invoice, today);
-                  const isPending = pendingId === invoice.id;
-                  const overdue = row.days > 0;
-                  const unit = Math.abs(row.days) === 1 ? "day" : "days";
-                  return (
-                    <tr key={invoice.id} className="border-b border-slate-100 align-top">
-                      <td className="px-3 py-3 text-sm text-slate-900">{row.clientName}</td>
-                      <td className="px-3 py-3 text-sm text-slate-700">{invoice.invoice_number}</td>
-                      <td className="px-3 py-3 text-sm text-slate-700">{invoice.title}</td>
-                      <td className="px-3 py-3 text-right text-sm font-medium tabular-nums text-slate-900">
-                        {formatInr(invoice.amount)}
-                      </td>
-                      <td className="px-3 py-3 text-sm tabular-nums text-slate-700">
-                        {formatDueDate(invoice.due_date)}
-                      </td>
-                      <td className="px-3 py-3 text-sm tabular-nums">
-                        {overdue ? (
-                          <span className="text-rose-700">
-                            {row.days} {unit} overdue
-                          </span>
-                        ) : (
-                          <span className={row.days >= -7 ? "text-amber-700" : "text-emerald-700"}>
-                            {-row.days} {unit} left
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-3 py-3 text-sm">
-                        <span
-                          className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${BUCKET_STYLES[bucket]}`}
+                        <button
+                          type="button"
+                          disabled={pendingId !== null || !data.settings}
+                          onClick={() => handleMarkPaid(invoice)}
+                          className={GHOST_EMERALD_BUTTON}
                         >
-                          {bucket}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 text-sm text-slate-700">
-                        {row.lastFollowUp ? dateTimeFormatter.format(new Date(row.lastFollowUp)) : "Never"}
-                      </td>
-                      <td className="px-3 py-3">
-                        <div className="flex flex-wrap gap-2">
-                          <button
-                            type="button"
-                            onClick={() => openChase({ invoiceId: invoice.id, tone: "friendly" })}
-                            className={SECONDARY_BUTTON}
-                          >
-                            Chase Now
-                          </button>
-                          <button
-                            type="button"
-                            disabled={pendingId !== null || !data.settings}
-                            onClick={() => handleMarkPaid(invoice)}
-                            className={PRIMARY_BUTTON}
-                          >
-                            {isPending ? "Saving..." : "Mark Paid"}
-                          </button>
-                        </div>
-                        {rowError?.id === invoice.id && (
-                          <p role="alert" className="mt-2 text-sm text-rose-700">
-                            {rowError.message}
-                          </p>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                          {isPending ? "Saving..." : "Mark Paid"}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         )}
       </div>
 
@@ -450,37 +465,45 @@ function NewInvoiceDialog({ clients, onClose, onCreated }: NewInvoiceDialogProps
   }
 
   const inputClass = (field: FormField) =>
-    `${INPUT_CLASS} ${errors[field] ? "border-rose-600" : "border-slate-300"}`;
+    `${INPUT_CLASS} ${errors[field] ? "border-rose" : "border-line"}`;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4"
-      onKeyDown={handleKeyDown}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40" onKeyDown={handleKeyDown}>
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="w-full max-w-lg rounded-xl border border-slate-200 bg-white p-6 shadow-xl"
+        className="mx-4 max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-line bg-surface p-6"
       >
-        <h3 id={titleId} className="text-lg font-semibold text-slate-900">
+        <h3 id={titleId} className="heading-md text-ink">
           New Invoice
         </h3>
 
         {errorCount > 0 && (
-          <div role="alert" className="mt-4 rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-700">
+          <div role="alert" className="mt-4 rounded-lg border border-rose/30 bg-rose/5 px-3 py-2 text-sm text-rose">
             Please fix the highlighted fields.
           </div>
         )}
         {submitError && (
-          <div role="alert" className="mt-4 rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-700">
-            {submitError}
+          <div
+            role="alert"
+            className="mt-4 flex items-start justify-between gap-3 rounded-lg border border-rose/30 bg-rose/5 px-3 py-2 text-sm text-rose"
+          >
+            <span>{submitError}</span>
+            <button
+              type="button"
+              aria-label="Dismiss error"
+              onClick={() => setSubmitError(null)}
+              className={`${SECONDARY_SMALL_BUTTON} shrink-0`}
+            >
+              Dismiss
+            </button>
           </div>
         )}
 
-        <form noValidate onSubmit={handleSubmit} className="mt-4 space-y-4">
+        <form noValidate onSubmit={handleSubmit} className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label htmlFor={fieldId("client_id")} className="block text-sm font-medium text-slate-700">
+            <label htmlFor={fieldId("client_id")} className="block caption text-ink-secondary">
               Client
             </label>
             <select
@@ -500,14 +523,14 @@ function NewInvoiceDialog({ clients, onClose, onCreated }: NewInvoiceDialogProps
               ))}
             </select>
             {errors.client_id && (
-              <p id={errorId("client_id")} className="mt-1 text-sm text-rose-700">
+              <p id={errorId("client_id")} className="mt-1 text-sm text-rose">
                 {errors.client_id}
               </p>
             )}
           </div>
 
           <div>
-            <label htmlFor={fieldId("invoice_number")} className="block text-sm font-medium text-slate-700">
+            <label htmlFor={fieldId("invoice_number")} className="block caption text-ink-secondary">
               Invoice number
             </label>
             <input
@@ -521,14 +544,14 @@ function NewInvoiceDialog({ clients, onClose, onCreated }: NewInvoiceDialogProps
               className={inputClass("invoice_number")}
             />
             {errors.invoice_number && (
-              <p id={errorId("invoice_number")} className="mt-1 text-sm text-rose-700">
+              <p id={errorId("invoice_number")} className="mt-1 text-sm text-rose">
                 {errors.invoice_number}
               </p>
             )}
           </div>
 
-          <div>
-            <label htmlFor={fieldId("title")} className="block text-sm font-medium text-slate-700">
+          <div className="sm:col-span-2">
+            <label htmlFor={fieldId("title")} className="block caption text-ink-secondary">
               Title
             </label>
             <input
@@ -541,7 +564,7 @@ function NewInvoiceDialog({ clients, onClose, onCreated }: NewInvoiceDialogProps
           </div>
 
           <div>
-            <label htmlFor={fieldId("amount")} className="block text-sm font-medium text-slate-700">
+            <label htmlFor={fieldId("amount")} className="block caption text-ink-secondary">
               Amount (INR)
             </label>
             <input
@@ -558,14 +581,14 @@ function NewInvoiceDialog({ clients, onClose, onCreated }: NewInvoiceDialogProps
               className={`${inputClass("amount")} tabular-nums`}
             />
             {errors.amount && (
-              <p id={errorId("amount")} className="mt-1 text-sm text-rose-700">
+              <p id={errorId("amount")} className="mt-1 text-sm text-rose">
                 {errors.amount}
               </p>
             )}
           </div>
 
           <div>
-            <label htmlFor={fieldId("due_date")} className="block text-sm font-medium text-slate-700">
+            <label htmlFor={fieldId("due_date")} className="block caption text-ink-secondary">
               Due date
             </label>
             <input
@@ -579,14 +602,14 @@ function NewInvoiceDialog({ clients, onClose, onCreated }: NewInvoiceDialogProps
               className={inputClass("due_date")}
             />
             {errors.due_date && (
-              <p id={errorId("due_date")} className="mt-1 text-sm text-rose-700">
+              <p id={errorId("due_date")} className="mt-1 text-sm text-rose">
                 {errors.due_date}
               </p>
             )}
           </div>
 
           <div>
-            <label htmlFor={fieldId("status")} className="block text-sm font-medium text-slate-700">
+            <label htmlFor={fieldId("status")} className="block caption text-ink-secondary">
               Status
             </label>
             <select
@@ -600,7 +623,7 @@ function NewInvoiceDialog({ clients, onClose, onCreated }: NewInvoiceDialogProps
             </select>
           </div>
 
-          <div className="flex flex-wrap justify-end gap-3 pt-2">
+          <div className="flex flex-wrap justify-end gap-3 pt-2 sm:col-span-2">
             <button type="button" onClick={onClose} className={SECONDARY_BUTTON}>
               Cancel
             </button>

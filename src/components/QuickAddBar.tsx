@@ -14,8 +14,6 @@ interface QuickAddBarProps {
   disabled?: boolean;
 }
 
-const FOCUS_RING =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2";
 const EXAMPLE = "Invoice Aarav Studio 45000 due in 14 days for Brand Guidelines";
 
 function messageOf(err: unknown): string {
@@ -114,11 +112,9 @@ export default function QuickAddBar({ today, onSaved, disabled = false }: QuickA
     }
   }
 
-  const isInvoice = parsed?.type === "invoice";
-
   return (
     <div className="space-y-2">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-2 sm:flex-row sm:items-center">
+      <form onSubmit={handleSubmit} className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
         <label htmlFor="quick-add" className="sr-only">
           Quick add an invoice or bill
         </label>
@@ -133,12 +129,12 @@ export default function QuickAddBar({ today, onSaved, disabled = false }: QuickA
           }}
           placeholder={EXAMPLE}
           autoComplete="off"
-          className={`min-h-11 w-full min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 disabled:opacity-60 ${FOCUS_RING}`}
+          className="h-10 w-full min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 text-sm text-ink placeholder:text-ink-muted hover:border-line-strong focus:border-blue focus:outline-none disabled:opacity-60"
         />
         <button
           type="submit"
           disabled={!canSubmit}
-          className={`min-h-11 shrink-0 rounded-md bg-slate-900 px-5 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 ${FOCUS_RING}`}
+          className="button-md h-10 shrink-0 rounded-lg bg-blue px-3 text-white hover:bg-blue/90 active:scale-[0.98] transition-transform duration-150 ease-emphasis disabled:cursor-not-allowed disabled:opacity-50"
         >
           {saving ? "Saving..." : "Save entry"}
         </button>
@@ -146,30 +142,30 @@ export default function QuickAddBar({ today, onSaved, disabled = false }: QuickA
 
       <div aria-live="polite" className="min-h-6 text-sm">
         {parsed ? (
-          <span
-            className={`inline-flex flex-wrap items-center gap-x-2 rounded-md border px-2.5 py-1 ${
-              isInvoice
-                ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-                : "border-amber-200 bg-amber-50 text-amber-800"
-            }`}
-          >
-            <span className="font-semibold capitalize">{parsed.type}</span>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald/30 bg-emerald/5 px-2.5 py-1 text-xs font-medium text-emerald">
+            <span className="capitalize">{parsed.type}</span>
             <span>{parsed.name}</span>
-            <span className="tabular-nums">{formatINR(parsed.amount)}</span>
-            <span className="tabular-nums">due {parsed.dueDate}</span>
+            <span className="num-inr">{formatINR(parsed.amount)}</span>
+            <span className="num-inr">due {parsed.dueDate}</span>
           </span>
         ) : hasText ? (
-          <span className="text-slate-500">Format: {EXAMPLE}</span>
+          <span className="inline-flex items-center rounded-lg border border-rose/30 bg-rose/5 px-2.5 py-1 text-xs text-rose">
+            Format: {EXAMPLE}
+          </span>
         ) : savedNote ? (
-          <span className="text-slate-600">{savedNote}</span>
+          <span className="text-ink-secondary">{savedNote}</span>
         ) : null}
       </div>
 
       {error && (
-        <p role="alert" className="text-sm text-rose-700">
+        <p
+          role="alert"
+          className="inline-flex items-center rounded-lg border border-rose/30 bg-rose/5 px-2.5 py-1 text-xs text-rose"
+        >
           {error}
         </p>
       )}
     </div>
   );
 }
+

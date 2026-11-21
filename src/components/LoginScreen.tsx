@@ -6,14 +6,30 @@ import { seedDemoWorkspace } from "../services/db";
 
 const DEMO_EMAIL = "demo@studioveda.in";
 const DEMO_PASSWORD = "RunwayDemo2026!";
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PASSWORD_MIN_LENGTH = 6;
 const FOCUS_RING =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2";
-const INPUT_CLASS = `min-h-11 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 ${FOCUS_RING}`;
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue focus-visible:ring-offset-2";
+const INPUT_CLASS =
+  "w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-muted hover:border-line-strong focus:border-blue focus:outline-none";
 
 type Mode = "signin" | "signup";
 
+type FieldErrors = { email?: string; password?: string };
+
 function messageOf(err: unknown): string {
   return err instanceof Error && err.message ? err.message : "Something went wrong. Try again.";
+}
+
+function validate(email: string, password: string): FieldErrors {
+  const errors: FieldErrors = {};
+  if (!EMAIL_PATTERN.test(email.trim())) {
+    errors.email = "Enter a valid email address.";
+  }
+  if (password.length < PASSWORD_MIN_LENGTH) {
+    errors.password = `Password must be at least ${PASSWORD_MIN_LENGTH} characters.`;
+  }
+  return errors;
 }
 
 export default function LoginScreen() {
@@ -23,14 +39,20 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   function switchMode(next: Mode) {
     setMode(next);
     setError(null);
+    setFieldErrors({});
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const errors = validate(email, password);
+    setFieldErrors(errors);
+    if (errors.email || errors.password) return;
+
     setBusy(true);
     setError(null);
     try {
@@ -83,31 +105,31 @@ export default function LoginScreen() {
   const isSignIn = mode === "signin";
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10 font-sans text-slate-900">
-      <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+    <div className="flex min-h-screen w-full items-center justify-center bg-canvas px-4 py-10 font-sans text-ink">
+      <div className="w-full max-w-md rounded-xl border border-line bg-surface p-6 sm:p-8">
         <div className="mb-6">
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">RunwayDesk</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">
+          <h1 className="heading-lg">RunwayDesk</h1>
+          <p className="body-md mt-1 text-ink-secondary">
             {isSignIn ? "Sign in to your studio" : "Create your studio account"}
-          </h1>
+          </p>
         </div>
 
         <button
           type="button"
           onClick={launchDemo}
           disabled={busy}
-          className={`mb-6 flex min-h-11 w-full items-center justify-center rounded-md bg-slate-900 px-4 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 ${FOCUS_RING}`}
+          className={`mb-6 flex w-full items-center justify-center rounded-lg bg-blue px-3 py-2.5 button-md text-white transition-transform duration-150 ease-emphasis hover:bg-blue/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 ${FOCUS_RING}`}
         >
           Launch Demo Studio
         </button>
 
-        <div role="tablist" aria-label="Account mode" className="mb-6 grid grid-cols-2 gap-1 rounded-md bg-slate-100 p-1">
+        <div role="tablist" aria-label="Account mode" className="mb-6 grid grid-cols-2 gap-1 rounded-lg bg-subtle p-1">
           <button
             type="button"
             role="tab"
             aria-selected={isSignIn}
             onClick={() => switchMode("signin")}
-            className={`min-h-11 rounded-md text-sm font-medium ${isSignIn ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"} ${FOCUS_RING}`}
+            className={`rounded-md border px-3 py-2 text-sm font-medium ${isSignIn ? "border-line bg-surface text-ink" : "border-transparent text-ink-muted hover:text-ink"} ${FOCUS_RING}`}
           >
             Sign In
           </button>
@@ -116,15 +138,15 @@ export default function LoginScreen() {
             role="tab"
             aria-selected={!isSignIn}
             onClick={() => switchMode("signup")}
-            className={`min-h-11 rounded-md text-sm font-medium ${!isSignIn ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"} ${FOCUS_RING}`}
+            className={`rounded-md border px-3 py-2 text-sm font-medium ${!isSignIn ? "border-line bg-surface text-ink" : "border-transparent text-ink-muted hover:text-ink"} ${FOCUS_RING}`}
           >
             Sign Up
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
           <div>
-            <label htmlFor="auth-email" className="mb-1 block text-sm font-medium text-slate-700">
+            <label htmlFor="auth-email" className="mb-1 block body-sm font-medium text-ink-secondary">
               Email
             </label>
             <input
@@ -133,14 +155,24 @@ export default function LoginScreen() {
               autoComplete="email"
               required
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (fieldErrors.email) setFieldErrors((prev) => ({ ...prev, email: undefined }));
+              }}
               placeholder="you@studio.com"
+              aria-invalid={fieldErrors.email ? true : undefined}
+              aria-describedby={fieldErrors.email ? "auth-email-error" : undefined}
               className={INPUT_CLASS}
             />
+            {fieldErrors.email && (
+              <p id="auth-email-error" className="mt-1 body-sm text-rose">
+                {fieldErrors.email}
+              </p>
+            )}
           </div>
 
           <div>
-            <label htmlFor="auth-password" className="mb-1 block text-sm font-medium text-slate-700">
+            <label htmlFor="auth-password" className="mb-1 block body-sm font-medium text-ink-secondary">
               Password
             </label>
             <input
@@ -148,16 +180,26 @@ export default function LoginScreen() {
               type="password"
               autoComplete={isSignIn ? "current-password" : "new-password"}
               required
-              minLength={6}
+              minLength={PASSWORD_MIN_LENGTH}
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (fieldErrors.password) setFieldErrors((prev) => ({ ...prev, password: undefined }));
+              }}
               placeholder="At least 6 characters"
+              aria-invalid={fieldErrors.password ? true : undefined}
+              aria-describedby={fieldErrors.password ? "auth-password-error" : undefined}
               className={INPUT_CLASS}
             />
+            {fieldErrors.password && (
+              <p id="auth-password-error" className="mt-1 body-sm text-rose">
+                {fieldErrors.password}
+              </p>
+            )}
           </div>
 
           {error && (
-            <p role="alert" className="text-sm text-rose-700">
+            <p role="alert" className="rounded-lg border border-rose/30 bg-rose/5 px-3 py-2 text-sm text-rose">
               {error}
             </p>
           )}
@@ -165,7 +207,7 @@ export default function LoginScreen() {
           <button
             type="submit"
             disabled={busy}
-            className={`flex min-h-11 w-full items-center justify-center rounded-md border border-slate-900 bg-white px-4 text-sm font-semibold text-slate-900 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60 ${FOCUS_RING}`}
+            className={`flex w-full items-center justify-center rounded-lg border border-line bg-surface px-3 py-2.5 button-md text-ink hover:bg-subtle disabled:cursor-not-allowed disabled:opacity-60 ${FOCUS_RING}`}
           >
             {busy ? "Please wait..." : isSignIn ? "Sign In" : "Create Account"}
           </button>

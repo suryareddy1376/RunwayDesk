@@ -72,17 +72,26 @@ function billStatus(bill: Bill, today: string): { tone: StatusTone; label: strin
 }
 
 const STATUS_CLASS: Record<StatusTone, string> = {
-  paid: "text-emerald-700",
-  overdue: "text-rose-700",
-  soon: "text-amber-700",
-  upcoming: "text-slate-700",
+  paid: "text-emerald",
+  overdue: "text-rose",
+  soon: "text-amber",
+  upcoming: "text-ink-secondary",
 };
 
+const CATEGORY_BADGE_CLASS =
+  "inline-flex rounded-full border border-line bg-subtle px-2 py-0.5 text-xs font-medium text-ink-secondary";
+const RECURRING_BADGE_CLASS =
+  "inline-flex rounded-full border border-blue/30 bg-blue/5 px-2 py-0.5 text-xs font-medium text-blue";
+const PRIMARY_BUTTON_CLASS =
+  "button-md rounded-lg bg-blue px-3 py-2 text-white hover:bg-blue/90 active:scale-[0.98] transition-transform duration-150 ease-emphasis disabled:opacity-50";
+const SECONDARY_BUTTON_CLASS =
+  "button-md rounded-lg border border-line bg-surface px-3 py-2 text-ink hover:bg-canvas active:scale-[0.98] transition-transform duration-150 ease-emphasis disabled:opacity-50";
+const ERROR_BANNER_CLASS = "rounded-lg border border-rose/30 bg-rose/5 px-3 py-2 text-sm text-rose";
 const INPUT_CLASS =
-  "mt-1 block w-full min-h-11 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500";
-const INPUT_ERROR_CLASS = "border-rose-500";
+  "mt-1 block h-9 w-full rounded-lg border border-line bg-surface px-3 text-sm text-ink focus:border-blue focus:outline-none focus-visible:ring-2 focus-visible:ring-blue/30";
+const INPUT_ERROR_CLASS = "border-rose";
 const FOCUS_RING =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2";
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue focus-visible:ring-offset-2";
 
 interface BillFormState {
   title: string;
@@ -219,125 +228,132 @@ export function BillsView() {
   return (
     <section className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h2 className="text-2xl font-semibold text-slate-900">Bills and Fixed Costs</h2>
+        <h2 className="heading-md text-ink">Bills and Fixed Costs</h2>
         <button
           ref={triggerRef}
           type="button"
           onClick={openModal}
-          className={`min-h-11 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 ${FOCUS_RING}`}
+          className={`${PRIMARY_BUTTON_CLASS} ${FOCUS_RING}`}
         >
           + Add Bill
         </button>
       </div>
 
       {toggleError && (
-        <p role="alert" className="rounded-lg bg-rose-50 p-3 text-sm text-rose-700">
-          {toggleError}
-        </p>
+        <div role="alert" className={`flex items-start justify-between gap-3 ${ERROR_BANNER_CLASS}`}>
+          <p>{toggleError}</p>
+          <button
+            type="button"
+            aria-label="Dismiss"
+            onClick={() => setToggleError(null)}
+            className={`shrink-0 rounded text-rose ${FOCUS_RING}`}
+          >
+            ×
+          </button>
+        </div>
       )}
 
-      <div className="rounded-xl border border-slate-200 bg-white p-6">
+      <div className="overflow-x-auto rounded-xl border border-line bg-surface">
         {sortedBills.length === 0 ? (
-          <p className="text-sm text-slate-600">
-            No bills yet. Add rent, contractors, or software costs to see your runway.
-          </p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-              <caption className="sr-only">Bills and fixed costs</caption>
-              <thead>
-                <tr>
-                  <th scope="col" className="px-3 py-2 font-semibold text-slate-700">Title</th>
-                  <th scope="col" className="px-3 py-2 font-semibold text-slate-700">Category</th>
-                  <th scope="col" className="px-3 py-2 font-semibold text-slate-700">Due date</th>
-                  <th scope="col" className="px-3 py-2 font-semibold text-slate-700">Recurring</th>
-                  <th scope="col" className="px-3 py-2 text-right font-semibold text-slate-700">Amount</th>
-                  <th scope="col" className="px-3 py-2 font-semibold text-slate-700">Status</th>
-                  <th scope="col" className="px-3 py-2 font-semibold text-slate-700">Paid</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {sortedBills.map((bill) => {
-                  const status = billStatus(bill, today);
-                  const pending = pendingId === bill.id;
-                  return (
-                    <tr key={bill.id}>
-                      <td className="px-3 py-2 font-medium text-slate-900">{bill.title}</td>
-                      <td className="px-3 py-2">
-                        <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
-                          {CATEGORY_LABEL[bill.category]}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2 text-slate-700">
-                        {new Date(`${bill.due_date}T00:00:00`).toLocaleDateString("en-IN", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </td>
-                      <td className="px-3 py-2">
-                        <span
-                          className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                            bill.recurring_monthly
-                              ? "bg-indigo-50 text-indigo-700"
-                              : "bg-slate-100 text-slate-700"
-                          }`}
-                        >
-                          {bill.recurring_monthly ? "Monthly" : "One-time"}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2 text-right tabular-nums text-slate-900">
-                        {inrFormatter.format(bill.amount)}
-                      </td>
-                      <td className={`px-3 py-2 font-medium ${STATUS_CLASS[status.tone]}`}>
-                        {status.label}
-                      </td>
-                      <td className="px-3 py-2">
-                        <button
-                          type="button"
-                          role="switch"
-                          aria-checked={bill.paid}
-                          aria-label={`Mark ${bill.title} as ${bill.paid ? "unpaid" : "paid"}`}
-                          disabled={pending}
-                          onClick={() => handleTogglePaid(bill)}
-                          className={`inline-flex min-h-11 items-center gap-2 rounded-lg border px-3 text-sm font-medium disabled:opacity-50 ${FOCUS_RING} ${
-                            bill.paid
-                              ? "border-emerald-300 bg-emerald-50 text-emerald-700"
-                              : "border-slate-300 bg-white text-slate-700"
-                          }`}
-                        >
-                          <span
-                            aria-hidden="true"
-                            className={`inline-block h-4 w-7 rounded-full ${
-                              bill.paid ? "bg-emerald-500" : "bg-slate-300"
-                            }`}
-                          />
-                          {pending ? "Saving..." : bill.paid ? "Paid" : "Unpaid"}
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          <div className="flex flex-col items-center justify-center gap-3 px-6 py-12 text-center">
+            <h3 className="title-sm text-ink">No bills yet.</h3>
+            <p className="body-md text-ink-secondary">
+              Add rent, contractors, or software costs to see your runway.
+            </p>
+            <button
+              type="button"
+              onClick={openModal}
+              className={`${PRIMARY_BUTTON_CLASS} ${FOCUS_RING}`}
+            >
+              + Add Bill
+            </button>
           </div>
+        ) : (
+          <table className="min-w-full text-left text-sm">
+            <caption className="sr-only">Bills and fixed costs</caption>
+            <thead className="bg-subtle">
+              <tr>
+                <th scope="col" className="border-b border-line px-4 py-2.5 text-xs font-medium uppercase tracking-wide text-ink-muted">Title</th>
+                <th scope="col" className="border-b border-line px-4 py-2.5 text-xs font-medium uppercase tracking-wide text-ink-muted">Category</th>
+                <th scope="col" className="border-b border-line px-4 py-2.5 text-xs font-medium uppercase tracking-wide text-ink-muted">Due date</th>
+                <th scope="col" className="border-b border-line px-4 py-2.5 text-xs font-medium uppercase tracking-wide text-ink-muted">Recurring</th>
+                <th scope="col" className="border-b border-line px-4 py-2.5 text-right text-xs font-medium uppercase tracking-wide text-ink-muted">Amount</th>
+                <th scope="col" className="border-b border-line px-4 py-2.5 text-xs font-medium uppercase tracking-wide text-ink-muted">Status</th>
+                <th scope="col" className="border-b border-line px-4 py-2.5 text-xs font-medium uppercase tracking-wide text-ink-muted">Paid</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sortedBills.map((bill) => {
+                const status = billStatus(bill, today);
+                const pending = pendingId === bill.id;
+                return (
+                  <tr key={bill.id} className="border-b border-line hover:bg-canvas">
+                    <td className="px-4 py-3 align-middle font-medium text-ink">{bill.title}</td>
+                    <td className="px-4 py-3 align-middle">
+                      <span className={CATEGORY_BADGE_CLASS}>{CATEGORY_LABEL[bill.category]}</span>
+                    </td>
+                    <td className="num-inr px-4 py-3 align-middle text-ink-secondary">
+                      {new Date(`${bill.due_date}T00:00:00`).toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </td>
+                    <td className="px-4 py-3 align-middle">
+                      {bill.recurring_monthly ? (
+                        <span className={RECURRING_BADGE_CLASS}>Monthly</span>
+                      ) : (
+                        <span className={CATEGORY_BADGE_CLASS}>One-time</span>
+                      )}
+                    </td>
+                    <td className="num-inr px-4 py-3 text-right align-middle text-ink">
+                      {inrFormatter.format(bill.amount)}
+                    </td>
+                    <td className={`px-4 py-3 align-middle font-medium ${STATUS_CLASS[status.tone]}`}>
+                      {status.label}
+                    </td>
+                    <td className="px-4 py-3 align-middle">
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={bill.paid}
+                        aria-label={bill.paid ? "Mark unpaid" : "Mark paid"}
+                        disabled={pending}
+                        onClick={() => handleTogglePaid(bill)}
+                        className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full px-0.5 transition-colors duration-150 ease-emphasis disabled:opacity-50 ${FOCUS_RING} ${
+                          bill.paid ? "bg-emerald" : "bg-line-strong"
+                        }`}
+                      >
+                        <span
+                          aria-hidden="true"
+                          className={`inline-block h-4 w-4 rounded-full bg-white transition-transform duration-150 ease-emphasis ${
+                            bill.paid ? "translate-x-4" : "translate-x-0"
+                          }`}
+                        />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         )}
       </div>
 
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40">
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="add-bill-title"
-            className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-xl"
+            className="mx-4 max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-line bg-surface p-6"
           >
-            <h3 id="add-bill-title" className="text-lg font-semibold text-slate-900">
+            <h3 id="add-bill-title" className="heading-md text-ink">
               Add Bill
             </h3>
 
             {submitted && errorList.length > 0 && (
-              <div role="alert" className="mt-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-700">
+              <div role="alert" className={`mt-4 ${ERROR_BANNER_CLASS}`}>
                 <p className="font-medium">Please fix the following:</p>
                 <ul className="list-disc pl-5">
                   {errorList.map((msg) => (
@@ -348,122 +364,124 @@ export function BillsView() {
             )}
 
             {saveError && (
-              <p role="alert" className="mt-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-700">
+              <p role="alert" className={`mt-4 ${ERROR_BANNER_CLASS}`}>
                 {saveError}
               </p>
             )}
 
             <form noValidate onSubmit={handleSubmit} className="mt-4 space-y-4">
-              <div>
-                <label htmlFor="bill-title" className="block text-sm font-medium text-slate-700">
-                  Title
-                </label>
-                <input
-                  id="bill-title"
-                  ref={firstFieldRef}
-                  type="text"
-                  required
-                  value={form.title}
-                  onChange={(e) => updateField("title", e.target.value)}
-                  aria-invalid={Boolean(errors.title)}
-                  aria-describedby={errors.title ? "bill-title-error" : undefined}
-                  className={`${INPUT_CLASS} ${errors.title ? INPUT_ERROR_CLASS : ""}`}
-                />
-                {errors.title && (
-                  <p id="bill-title-error" className="mt-1 text-sm text-rose-700">
-                    {errors.title}
-                  </p>
-                )}
-              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <label htmlFor="bill-title" className="caption block text-ink-secondary">
+                    Title
+                  </label>
+                  <input
+                    id="bill-title"
+                    ref={firstFieldRef}
+                    type="text"
+                    required
+                    value={form.title}
+                    onChange={(e) => updateField("title", e.target.value)}
+                    aria-invalid={Boolean(errors.title)}
+                    aria-describedby={errors.title ? "bill-title-error" : undefined}
+                    className={`${INPUT_CLASS} ${errors.title ? INPUT_ERROR_CLASS : ""}`}
+                  />
+                  {errors.title && (
+                    <p id="bill-title-error" className="mt-1 text-sm text-rose">
+                      {errors.title}
+                    </p>
+                  )}
+                </div>
 
-              <div>
-                <label htmlFor="bill-category" className="block text-sm font-medium text-slate-700">
-                  Category
-                </label>
-                <select
-                  id="bill-category"
-                  value={form.category}
-                  onChange={(e) => updateField("category", e.target.value as BillCategory)}
-                  className={INPUT_CLASS}
-                >
-                  {CATEGORY_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                <div>
+                  <label htmlFor="bill-category" className="caption block text-ink-secondary">
+                    Category
+                  </label>
+                  <select
+                    id="bill-category"
+                    value={form.category}
+                    onChange={(e) => updateField("category", e.target.value as BillCategory)}
+                    className={INPUT_CLASS}
+                  >
+                    {CATEGORY_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-              <div>
-                <label htmlFor="bill-amount" className="block text-sm font-medium text-slate-700">
-                  Amount (INR)
-                </label>
-                <input
-                  id="bill-amount"
-                  type="number"
-                  inputMode="decimal"
-                  min="0"
-                  step="0.01"
-                  required
-                  value={form.amount}
-                  onChange={(e) => updateField("amount", e.target.value)}
-                  aria-invalid={Boolean(errors.amount)}
-                  aria-describedby={errors.amount ? "bill-amount-error" : undefined}
-                  className={`${INPUT_CLASS} ${errors.amount ? INPUT_ERROR_CLASS : ""}`}
-                />
-                {errors.amount && (
-                  <p id="bill-amount-error" className="mt-1 text-sm text-rose-700">
-                    {errors.amount}
-                  </p>
-                )}
-              </div>
+                <div>
+                  <label htmlFor="bill-amount" className="caption block text-ink-secondary">
+                    Amount (INR)
+                  </label>
+                  <input
+                    id="bill-amount"
+                    type="number"
+                    inputMode="decimal"
+                    min="0"
+                    step="0.01"
+                    required
+                    value={form.amount}
+                    onChange={(e) => updateField("amount", e.target.value)}
+                    aria-invalid={Boolean(errors.amount)}
+                    aria-describedby={errors.amount ? "bill-amount-error" : undefined}
+                    className={`${INPUT_CLASS} ${errors.amount ? INPUT_ERROR_CLASS : ""}`}
+                  />
+                  {errors.amount && (
+                    <p id="bill-amount-error" className="mt-1 text-sm text-rose">
+                      {errors.amount}
+                    </p>
+                  )}
+                </div>
 
-              <div>
-                <label htmlFor="bill-due-date" className="block text-sm font-medium text-slate-700">
-                  Due date
-                </label>
-                <input
-                  id="bill-due-date"
-                  type="date"
-                  required
-                  value={form.dueDate}
-                  onChange={(e) => updateField("dueDate", e.target.value)}
-                  aria-invalid={Boolean(errors.dueDate)}
-                  aria-describedby={errors.dueDate ? "bill-due-date-error" : undefined}
-                  className={`${INPUT_CLASS} ${errors.dueDate ? INPUT_ERROR_CLASS : ""}`}
-                />
-                {errors.dueDate && (
-                  <p id="bill-due-date-error" className="mt-1 text-sm text-rose-700">
-                    {errors.dueDate}
-                  </p>
-                )}
-              </div>
+                <div>
+                  <label htmlFor="bill-due-date" className="caption block text-ink-secondary">
+                    Due date
+                  </label>
+                  <input
+                    id="bill-due-date"
+                    type="date"
+                    required
+                    value={form.dueDate}
+                    onChange={(e) => updateField("dueDate", e.target.value)}
+                    aria-invalid={Boolean(errors.dueDate)}
+                    aria-describedby={errors.dueDate ? "bill-due-date-error" : undefined}
+                    className={`${INPUT_CLASS} ${errors.dueDate ? INPUT_ERROR_CLASS : ""}`}
+                  />
+                  {errors.dueDate && (
+                    <p id="bill-due-date-error" className="mt-1 text-sm text-rose">
+                      {errors.dueDate}
+                    </p>
+                  )}
+                </div>
 
-              <div className="flex min-h-11 items-center gap-2">
-                <input
-                  id="bill-recurring"
-                  type="checkbox"
-                  checked={form.recurring}
-                  onChange={(e) => updateField("recurring", e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300 text-indigo-600"
-                />
-                <label htmlFor="bill-recurring" className="text-sm font-medium text-slate-700">
-                  Recurring monthly
-                </label>
+                <div className="flex h-9 items-center gap-2 sm:self-end">
+                  <input
+                    id="bill-recurring"
+                    type="checkbox"
+                    checked={form.recurring}
+                    onChange={(e) => updateField("recurring", e.target.checked)}
+                    className="h-4 w-4 rounded border-line text-blue focus:ring-blue/30"
+                  />
+                  <label htmlFor="bill-recurring" className="text-sm font-medium text-ink">
+                    Recurring monthly
+                  </label>
+                </div>
               </div>
 
               <div className="flex justify-end gap-3 pt-2">
                 <button
                   type="button"
                   onClick={closeModal}
-                  className={`min-h-11 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 ${FOCUS_RING}`}
+                  className={`${SECONDARY_BUTTON_CLASS} ${FOCUS_RING}`}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className={`min-h-11 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 ${FOCUS_RING}`}
+                  className={`${PRIMARY_BUTTON_CLASS} ${FOCUS_RING}`}
                 >
                   {saving ? "Saving..." : "Save Bill"}
                 </button>

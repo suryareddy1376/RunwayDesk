@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { todayIso, useWorkspace } from "../hooks/useWorkspace";
 import { seedDemoWorkspace } from "../services/db";
@@ -48,8 +48,8 @@ const TABS: TabDef[] = [
   },
 ];
 
-const FOCUS_RING =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2";
+const FOCUS_RING = "focus-visible:ring-2 focus-visible:ring-blue focus-visible:ring-offset-2";
+const SIDEBAR_ID = "app-sidebar";
 
 function messageOf(err: unknown): string {
   return err instanceof Error && err.message ? err.message : "Something went wrong. Try again.";
@@ -81,6 +81,7 @@ function Workspace() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [chase, setChase] = useState<{ invoiceId: string; tone: FollowupTone } | null>(null);
   const [simulationRequest] = useState(0);
+  const [isNavOpen, setIsNavOpen] = useState(false);
 
   const today = todayIso();
   const studioName = data?.settings?.studio_name ?? "RunwayDesk";
@@ -98,6 +99,24 @@ function Workspace() {
         .sort((a, b) => b.sent_at.localeCompare(a.sent_at))
     : [];
   const chaseDaysOverdue = chaseInvoice ? daysOverdue(chaseInvoice.due_date, today) : 0;
+
+  useEffect(() => {
+    if (!isNavOpen) return;
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setIsNavOpen(false);
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isNavOpen]);
+
+  useEffect(() => {
+    if (!isNavOpen || window.matchMedia("(min-width: 1024px)").matches) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isNavOpen]);
 
   async function resetDemo() {
     const confirmed = window.confirm("Reset demo data? The current demo records will be replaced.");
@@ -124,24 +143,46 @@ function Workspace() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 md:grid md:grid-cols-[220px_1fr]">
-      <aside className="border-b border-slate-200 bg-white md:min-h-screen md:border-b-0 md:border-r">
-        <div className="px-5 py-5">
-          <p className="text-sm font-semibold tracking-tight">RunwayDesk</p>
+    <div className="flex min-h-screen bg-canvas pb-[env(safe-area-inset-bottom)] font-sans text-ink">
+      <aside
+        id={SIDEBAR_ID}
+        className={`fixed inset-y-0 left-0 z-50 flex w-[min(84vw,280px)] flex-col overflow-y-auto border-r border-line bg-surface transition-transform duration-200 ease-emphasis motion-reduce:transition-none lg:static lg:w-56 lg:translate-x-0 lg:overflow-visible ${
+          isNavOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="flex items-center justify-between gap-2 py-3 pl-5 pr-3 lg:px-5 lg:py-5">
+          <p className="text-sm font-semibold tracking-tight text-ink">RunwayDesk</p>
+          <button
+            type="button"
+            onClick={() => setIsNavOpen(false)}
+            aria-label="Close menu"
+            className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-ink-secondary transition-transform duration-200 ease-emphasis hover:bg-subtle hover:text-ink active:scale-[0.98] lg:hidden ${FOCUS_RING}`}
+          >
+            <Icon path="M6 6l12 12M18 6L6 18" />
+          </button>
         </div>
-        <nav aria-label="Sections" className="flex gap-1 overflow-x-auto px-3 pb-3 md:flex-col md:overflow-visible md:pb-0">
+        <nav aria-label="Sections" className="flex flex-col gap-1 px-3 pb-3 lg:pb-0">
           {TABS.map((item) => {
             const active = item.id === tab;
             return (
               <button
                 key={item.id}
                 type="button"
-                onClick={() => setTab(item.id)}
+                onClick={() => {
+                  setTab(item.id);
+                  setIsNavOpen(false);
+                }}
                 aria-current={active ? "page" : undefined}
-                className={`flex min-h-11 shrink-0 items-center gap-3 rounded-md px-3 text-sm font-medium ${
-                  active ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                className={`relative flex min-h-11 shrink-0 items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors duration-150 ease-emphasis hover:bg-subtle hover:text-ink active:scale-[0.98] ${
+                  active ? "bg-subtle font-semibold text-ink" : "font-medium text-ink-secondary"
                 } ${FOCUS_RING}`}
               >
+                {active && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-full bg-blue"
+                  />
+                )}
                 <Icon path={item.iconPath} />
                 <span>{item.label}</span>
               </button>
@@ -150,39 +191,56 @@ function Workspace() {
         </nav>
       </aside>
 
-      <div className="flex min-w-0 flex-col">
-        <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 backdrop-blur">
-          <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
+      {isNavOpen && (
+        <div aria-hidden="true" onClick={() => setIsNavOpen(false)} className="fixed inset-0 z-40 bg-ink/40 lg:hidden" />
+      )}
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-2 border-b border-line bg-surface px-4 sm:px-6">
+          <div className="flex min-w-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsNavOpen(true)}
+              aria-label="Open menu"
+              aria-expanded={isNavOpen}
+              aria-controls={SIDEBAR_ID}
+              className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-ink-secondary transition-transform duration-200 ease-emphasis hover:bg-subtle hover:text-ink active:scale-[0.98] lg:hidden ${FOCUS_RING}`}
+            >
+              <Icon path="M4 6h16M4 12h16M4 18h16" />
+            </button>
             <div className="min-w-0">
-              <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Studio</p>
-              <h1 className="truncate text-lg font-semibold tracking-tight">{studioName}</h1>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={resetDemo}
-                disabled={resetting}
-                className={`flex min-h-11 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60 ${FOCUS_RING}`}
-              >
-                <Icon path="M4 4v6h6M20 20v-6h-6M5.6 15A8 8 0 0 0 19 12M18.4 9A8 8 0 0 0 5 12" className="h-4 w-4" />
-                {resetting ? "Resetting..." : "Reset Demo Data"}
-              </button>
-              <button
-                type="button"
-                onClick={handleSignOut}
-                className={`flex min-h-11 items-center gap-2 rounded-md px-3 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 ${FOCUS_RING}`}
-              >
-                <Icon path="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10" className="h-4 w-4" />
-                Sign Out
-              </button>
+              <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-ink-muted">
+                <span aria-hidden="true" className="h-2 w-2 rounded-full bg-emerald" />
+                Studio
+              </p>
+              <h1 className="title-md truncate">{studioName}</h1>
             </div>
           </div>
-          <div className="border-t border-slate-100 px-6 py-3">
-            <QuickAddBar today={today} onSaved={refresh} disabled={loading && !data} />
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={resetDemo}
+              disabled={resetting}
+              className={`flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink transition-transform duration-150 ease-emphasis hover:bg-subtle active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 ${FOCUS_RING}`}
+            >
+              <Icon path="M4 4v6h6M20 20v-6h-6M5.6 15A8 8 0 0 0 19 12M18.4 9A8 8 0 0 0 5 12" className="h-4 w-4" />
+              <span className="sr-only sm:not-sr-only">{resetting ? "Resetting..." : "Reset Demo Data"}</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleSignOut}
+              className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium text-ink-secondary transition-transform duration-150 ease-emphasis hover:bg-subtle hover:text-ink active:scale-[0.98] ${FOCUS_RING}`}
+            >
+              <Icon path="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10" className="h-4 w-4" />
+              Sign Out
+            </button>
           </div>
         </header>
+        <div className="border-b border-line bg-surface px-4 py-3 lg:px-6">
+          <QuickAddBar today={today} onSaved={refresh} disabled={loading && !data} />
+        </div>
 
-        <main className="flex-1 space-y-6 px-6 py-6">
+        <main className="min-h-screen min-w-0 flex-1 space-y-6 bg-canvas px-4 py-4 sm:px-6 lg:px-8 lg:py-6">
           {error && (
             <p role="alert" className="text-sm text-rose-700">
               {error}
@@ -193,23 +251,26 @@ function Workspace() {
               {actionError}
             </p>
           )}
-          {loading && !data && <p className="text-sm text-slate-500">Loading workspace...</p>}
+          {loading && !data && <p className="text-sm text-ink-muted">Loading workspace...</p>}
 
           <section aria-labelledby="tab-heading" className="space-y-4">
-            <div className="flex items-center gap-2 text-slate-900">
-              <Icon path={activeTab.iconPath} className="h-5 w-5 text-slate-500" />
+            <div className="flex items-center gap-2 text-ink">
+              <Icon path={activeTab.iconPath} className="h-5 w-5 text-ink-muted" />
               <h2 id="tab-heading" className="text-lg font-semibold tracking-tight">
                 {activeTab.label}
               </h2>
             </div>
-            <p className="text-sm text-slate-600">{activeTab.description}</p>
+            <p className="text-sm text-ink-secondary">{activeTab.description}</p>
 
-            {tab === "overview" && <OverviewView openChase={openChase} simulationRequest={simulationRequest} />}
-            {tab === "receivables" && <ReceivablesView openChase={openChase} />}
-            {tab === "bills" && <BillsView />}
-            {tab === "clients" && <ClientsView />}
+            <div className="min-w-0 overflow-x-auto">
+              {tab === "overview" && <OverviewView openChase={openChase} simulationRequest={simulationRequest} />}
+              {tab === "receivables" && <ReceivablesView openChase={openChase} />}
+              {tab === "bills" && <BillsView />}
+              {tab === "clients" && <ClientsView />}
+            </div>
           </section>
         </main>
+
       </div>
 
       <ChaseDrawer
@@ -232,7 +293,7 @@ export default function AppShell() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50 font-sans text-sm text-slate-500">
+      <div className="flex min-h-screen items-center justify-center bg-canvas font-sans text-sm text-ink-muted">
         Loading...
       </div>
     );

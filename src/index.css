@@ -1,3 +1,132 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html,
+  body {
+    background: #F8F7F4;
+    color: #14171A;
+  }
+
+  html {
+    font-family: Manrope, ui-sans-serif, system-ui, sans-serif;
+  }
+
+  table,
+  td,
+  th,
+  .num-inr,
+  .tabular,
+  .figure {
+    font-variant-numeric: tabular-nums;
+  }
+
+  button,
+  a,
+  input,
+  select,
+  textarea,
+  [role="button"],
+  [role="tab"],
+  [role="switch"] {
+    transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+    transition-duration: 200ms;
+    transition-timing-function: cubic-bezier(0.22,1,0.36,1);
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  :focus-visible {
+    outline: 2px solid #2563EB;
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Nested radius: inner = outer - gap when gap < 32px */
+
+@layer components {
+  .heading-xl {
+    @apply text-3xl font-semibold;
+    text-wrap: balance;
+  }
+
+  .heading-lg {
+    @apply text-2xl font-semibold;
+    text-wrap: balance;
+  }
+
+  .heading-md {
+    @apply text-xl font-semibold;
+    text-wrap: balance;
+  }
+
+  .title-lg {
+    @apply text-lg font-semibold;
+    text-wrap: balance;
+  }
+
+  .title-md {
+    @apply text-base font-semibold;
+    text-wrap: balance;
+  }
+
+  .title-sm {
+    @apply text-sm font-semibold;
+    text-wrap: balance;
+  }
+
+  .body-md {
+    @apply text-sm;
+    color: #4B5563;
+    text-wrap: pretty;
+  }
+
+  .body-sm {
+    @apply text-xs;
+    color: #4B5563;
+    text-wrap: pretty;
+  }
+
+  .button-md {
+    @apply text-sm font-medium;
+  }
+
+  .button-sm {
+    @apply text-xs font-medium;
+  }
+
+  .caption {
+    @apply text-xs uppercase tracking-wide;
+    color: #6B7280;
+  }
+
+  .num-inr {
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .figure {
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+}
