@@ -1,0 +1,6 @@
+{
+    "nexenAi.autoApprove.writes": true,
+    "nexenAi.autoApprove.terminal": true,
+    "nexenAi.autoApprove.destructive": true,
+    "nexenAi.planMode": false
+}
