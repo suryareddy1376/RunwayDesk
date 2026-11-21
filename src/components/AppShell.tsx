@@ -2,9 +2,15 @@ import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { todayIso, useWorkspace } from "../hooks/useWorkspace";
 import { seedDemoWorkspace } from "../services/db";
-import { formatINR } from "../engine/reminderTemplates";
+import { daysOverdue } from "../engine/aging";
+import type { FollowupTone } from "../types/database";
 import LoginScreen from "./LoginScreen";
 import QuickAddBar from "./QuickAddBar";
+import { BillsView } from "./BillsView";
+import { ChaseDrawer } from "./ChaseDrawer";
+import { ClientsView } from "./ClientsView";
+import { OverviewView } from "./OverviewView";
+import { ReceivablesView } from "./ReceivablesView";
 
 type TabId = "overview" | "receivables" | "bills" | "clients";
 
@@ -66,27 +72,32 @@ function Icon({ path, className = "h-5 w-5" }: { path: string; className?: strin
   );
 }
 
-function StatCard({ label, value, tone }: { label: string; value: string; tone: "neutral" | "rose" | "amber" }) {
-  const toneClass =
-    tone === "rose" ? "text-rose-700" : tone === "amber" ? "text-amber-700" : "text-slate-900";
-  return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4">
-      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
-      <p className={`mt-2 text-2xl font-semibold tabular-nums ${toneClass}`}>{value}</p>
-    </div>
-  );
-}
 
 function Workspace() {
   const { signOut } = useAuth();
-  const { data, loading, error, refresh, alerts, forecast } = useWorkspace();
+  const { data, loading, error, refresh } = useWorkspace();
   const [tab, setTab] = useState<TabId>("overview");
   const [resetting, setResetting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [chase, setChase] = useState<{ invoiceId: string; tone: FollowupTone } | null>(null);
+  const [simulationRequest] = useState(0);
 
   const today = todayIso();
   const studioName = data?.settings?.studio_name ?? "RunwayDesk";
   const activeTab = TABS.find((t) => t.id === tab) ?? TABS[0];
+
+  function openChase(target: { invoiceId: string; tone: FollowupTone }) {
+    setChase(target);
+  }
+
+  const chaseInvoice = chase ? (data?.invoices.find((i) => i.id === chase.invoiceId) ?? null) : null;
+  const chaseClient = chaseInvoice ? (data?.clients.find((c) => c.id === chaseInvoice.client_id) ?? null) : null;
+  const chaseLogs = chase
+    ? (data?.followupLogs ?? [])
+        .filter((l) => l.invoice_id === chase.invoiceId)
+        .sort((a, b) => b.sent_at.localeCompare(a.sent_at))
+    : [];
+  const chaseDaysOverdue = chaseInvoice ? daysOverdue(chaseInvoice.due_date, today) : 0;
 
   async function resetDemo() {
     const confirmed = window.confirm("Reset demo data? The current demo records will be replaced.");
@@ -111,9 +122,6 @@ function Workspace() {
       setActionError(messageOf(err));
     }
   }
-
-  const lowest = forecast?.lowestBalance ?? 0;
-  const shortfall = forecast?.cashShortfall ?? 0;
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 md:grid md:grid-cols-[220px_1fr]">
@@ -196,24 +204,25 @@ function Workspace() {
             </div>
             <p className="text-sm text-slate-600">{activeTab.description}</p>
 
-            {tab === "overview" && (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <StatCard label="Lowest projected cash" value={formatINR(lowest)} tone="neutral" />
-                <StatCard
-                  label="Cash shortfall"
-                  value={formatINR(shortfall)}
-                  tone={shortfall > 0 ? "rose" : "neutral"}
-                />
-                <StatCard label="Open alerts" value={String(alerts.length)} tone={alerts.length > 0 ? "amber" : "neutral"} />
-              </div>
-            )}
-
-            <div className="flex min-h-48 items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white p-6 text-sm text-slate-500">
-              {activeTab.label} panel placeholder
-            </div>
+            {tab === "overview" && <OverviewView openChase={openChase} simulationRequest={simulationRequest} />}
+            {tab === "receivables" && <ReceivablesView openChase={openChase} />}
+            {tab === "bills" && <BillsView />}
+            {tab === "clients" && <ClientsView />}
           </section>
         </main>
       </div>
+
+      <ChaseDrawer
+        key={chase ? chase.invoiceId + chase.tone : "closed"}
+        open={chase !== null}
+        onClose={() => setChase(null)}
+        invoice={chaseInvoice}
+        client={chaseClient}
+        daysOverdue={chaseDaysOverdue}
+        followupLogs={chaseLogs}
+        defaultTone={chase?.tone}
+        studioName={studioName}
+      />
     </div>
   );
 }
