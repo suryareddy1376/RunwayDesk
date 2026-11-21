@@ -1,3 +1,10 @@
+﻿import { AuthProvider } from './context/AuthContext';
+import AppShell from './components/AppShell';
+
 export default function App() {
-  return <div className="p-8 text-2xl font-semibold">RunwayDesk</div>;
+  return (
+    <AuthProvider>
+      <AppShell />
+    </AuthProvider>
+  );
 }
