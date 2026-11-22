@@ -239,7 +239,7 @@ function SiteNav({ signedIn }: { signedIn: boolean }) {
       <motion.header className="sticky top-0 z-40 w-full bg-white/90 backdrop-blur-md border-b border-neutral-200">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link to="/" className={BRAND}>
-            RunwayDesk
+            <img src="/logo.png" alt="RunwayDesk" className="h-8 w-auto object-contain" />
           </Link>
 
           <ul className="hidden items-center gap-2 md:flex">

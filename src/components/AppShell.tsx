@@ -151,7 +151,7 @@ export function Workspace() {
         }`}
       >
         <div className="flex items-center justify-between gap-2 py-3 pl-5 pr-3 lg:px-5 lg:py-5">
-          <p className="text-sm font-semibold tracking-tight text-ink">RunwayDesk</p>
+          <img src="/logo.png" alt="RunwayDesk" className="h-8 w-auto object-contain" />
           <button
             type="button"
             onClick={() => setIsNavOpen(false)}
