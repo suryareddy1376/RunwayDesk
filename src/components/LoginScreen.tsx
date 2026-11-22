@@ -109,7 +109,7 @@ export default function LoginScreen({ initialMode = "signin" }: LoginScreenProps
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-canvas px-4 py-10 font-sans text-ink">
       <div className="w-full max-w-md rounded-xl border border-line bg-surface p-6 sm:p-8">
-        <img src="/logo.png" alt="RunwayDesk" className="h-10 w-auto object-contain" />
+        <img src="/runwaydesk-growth-mark.png" alt="RunwayDesk" className="h-14 w-auto object-contain" />
         <div className="mb-6">
           <h1 className="heading-lg">RunwayDesk</h1>
           <p className="body-md mt-1 text-ink-secondary">
