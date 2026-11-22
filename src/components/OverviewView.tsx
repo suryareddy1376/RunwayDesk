@@ -428,25 +428,16 @@ export function OverviewView({ openChase, simulationRequest }: OverviewViewProps
                 width={110}
                 tickFormatter={(v: number) => inr(v)}
               />
-              <Tooltip formatter={(value) => inr(Number(value))} />
-              <ReferenceLine
-                y={0}
-                stroke="#e11d48"
-                strokeWidth={2}
-                label={{
-                  value: '₹0 Danger Line',
-                  position: 'insideBottomLeft',
-                  fill: '#e11d48',
-                  fontSize: 12,
-                  dy: -12,
-                  dx: 6,
-                }}
-/>
+              <Tooltip
+                formatter={(value) => inr(Number(value))}
+                contentStyle={{ fontSize: '12px', padding: '6px 8px' }}
+                wrapperStyle={{ zIndex: 20, pointerEvents: 'none' }}
+              />
+              <ReferenceLine y={0} stroke="#e11d48" strokeWidth={2} />
               <ReferenceLine
                 y={settings.safe_buffer_amount}
                 stroke="#D97706"
                 strokeDasharray="4 4"
-                label={{ value: 'Safe Buffer', position: 'insideTopRight', fill: '#D97706', fontSize: 12 }}
               />
               <Line
                 type="monotone"

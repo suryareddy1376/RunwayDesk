@@ -73,7 +73,7 @@ function Icon({ path, className = "h-5 w-5" }: { path: string; className?: strin
 }
 
 
-function Workspace() {
+export function Workspace() {
   const { signOut } = useAuth();
   const { data, loading, error, refresh } = useWorkspace();
   const [tab, setTab] = useState<TabId>("overview");

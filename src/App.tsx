@@ -1,10 +1,13 @@
-﻿import { AuthProvider } from './context/AuthContext';
-import AppShell from './components/AppShell';
+﻿import { BrowserRouter } from "react-router-dom";
+import { AuthProvider } from './context/AuthContext';
+import AppRoutes from "./routes/AppRoutes";
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppShell />
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
+    </BrowserRouter>
   );
 }

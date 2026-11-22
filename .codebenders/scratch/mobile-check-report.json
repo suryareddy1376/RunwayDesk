@@ -1,0 +1,1144 @@
+{
+  "browser": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  "console": [],
+  "faq": {
+    "reducedMotion": false,
+    "viewport": [
+      390,
+      844,
+      390
+    ],
+    "items": [
+      {
+        "item": 0,
+        "open": {
+          "before": {
+            "open": false,
+            "rendered": 1,
+            "h": 0
+          },
+          "after": {
+            "open": true,
+            "h": 96
+          },
+          "framesTotal": 57,
+          "midFrames": 21,
+          "first": [
+            [
+              5,
+              0
+            ],
+            [
+              6,
+              0
+            ],
+            [
+              10,
+              0
+            ],
+            [
+              23,
+              14
+            ],
+            [
+              38,
+              27
+            ],
+            [
+              55,
+              38
+            ],
+            [
+              72,
+              49
+            ],
+            [
+              89,
+              57
+            ],
+            [
+              106,
+              65
+            ],
+            [
+              122,
+              71
+            ]
+          ]
+        },
+        "close": {
+          "before": {
+            "open": true,
+            "rendered": 1,
+            "h": 116
+          },
+          "after": {
+            "open": false,
+            "h": 116
+          },
+          "framesTotal": 57,
+          "midFrames": 0,
+          "first": [
+            [
+              0,
+              116
+            ],
+            [
+              1,
+              116
+            ],
+            [
+              6,
+              116
+            ],
+            [
+              23,
+              116
+            ],
+            [
+              41,
+              116
+            ],
+            [
+              57,
+              116
+            ],
+            [
+              72,
+              116
+            ],
+            [
+              89,
+              116
+            ],
+            [
+              106,
+              116
+            ],
+            [
+              124,
+              116
+            ]
+          ]
+        }
+      },
+      {
+        "item": 1,
+        "open": {
+          "before": {
+            "open": false,
+            "rendered": 1,
+            "h": 0
+          },
+          "after": {
+            "open": true,
+            "h": 76
+          },
+          "framesTotal": 56,
+          "midFrames": 20,
+          "first": [
+            [
+              1,
+              0
+            ],
+            [
+              10,
+              0
+            ],
+            [
+              27,
+              11
+            ],
+            [
+              44,
+              21
+            ],
+            [
+              60,
+              30
+            ],
+            [
+              77,
+              39
+            ],
+            [
+              93,
+              45
+            ],
+            [
+              111,
+              51
+            ],
+            [
+              126,
+              56
+            ],
+            [
+              144,
+              60
+            ]
+          ]
+        },
+        "close": {
+          "before": {
+            "open": true,
+            "rendered": 1,
+            "h": 76
+          },
+          "after": {
+            "open": false,
+            "h": 76
+          },
+          "framesTotal": 56,
+          "midFrames": 0,
+          "first": [
+            [
+              0,
+              76
+            ],
+            [
+              7,
+              76
+            ],
+            [
+              24,
+              76
+            ],
+            [
+              44,
+              76
+            ],
+            [
+              57,
+              76
+            ],
+            [
+              74,
+              76
+            ],
+            [
+              92,
+              76
+            ],
+            [
+              108,
+              76
+            ],
+            [
+              124,
+              76
+            ],
+            [
+              141,
+              76
+            ]
+          ]
+        }
+      },
+      {
+        "item": 2,
+        "open": {
+          "before": {
+            "open": false,
+            "rendered": 1,
+            "h": 0
+          },
+          "after": {
+            "open": true,
+            "h": 76
+          },
+          "framesTotal": 56,
+          "midFrames": 20,
+          "first": [
+            [
+              1,
+              0
+            ],
+            [
+              9,
+              0
+            ],
+            [
+              24,
+              11
+            ],
+            [
+              40,
+              21
+            ],
+            [
+              60,
+              30
+            ],
+            [
+              74,
+              38
+            ],
+            [
+              91,
+              45
+            ],
+            [
+              108,
+              51
+            ],
+            [
+              125,
+              56
+            ],
+            [
+              143,
+              60
+            ]
+          ]
+        },
+        "close": {
+          "before": {
+            "open": true,
+            "rendered": 1,
+            "h": 76
+          },
+          "after": {
+            "open": false,
+            "h": 76
+          },
+          "framesTotal": 56,
+          "midFrames": 0,
+          "first": [
+            [
+              0,
+              76
+            ],
+            [
+              2,
+              76
+            ],
+            [
+              18,
+              76
+            ],
+            [
+              36,
+              76
+            ],
+            [
+              52,
+              76
+            ],
+            [
+              68,
+              76
+            ],
+            [
+              86,
+              76
+            ],
+            [
+              102,
+              76
+            ],
+            [
+              120,
+              76
+            ],
+            [
+              135,
+              76
+            ]
+          ]
+        }
+      },
+      {
+        "item": 3,
+        "open": {
+          "before": {
+            "open": false,
+            "rendered": 1,
+            "h": 0
+          },
+          "after": {
+            "open": true,
+            "h": 76
+          },
+          "framesTotal": 56,
+          "midFrames": 20,
+          "first": [
+            [
+              0,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              18,
+              11
+            ],
+            [
+              34,
+              21
+            ],
+            [
+              51,
+              31
+            ],
+            [
+              68,
+              39
+            ],
+            [
+              84,
+              45
+            ],
+            [
+              101,
+              51
+            ],
+            [
+              118,
+              56
+            ],
+            [
+              135,
+              60
+            ]
+          ]
+        },
+        "close": {
+          "before": {
+            "open": true,
+            "rendered": 1,
+            "h": 76
+          },
+          "after": {
+            "open": false,
+            "h": 76
+          },
+          "framesTotal": 56,
+          "midFrames": 0,
+          "first": [
+            [
+              0,
+              76
+            ],
+            [
+              4,
+              76
+            ],
+            [
+              20,
+              76
+            ],
+            [
+              35,
+              76
+            ],
+            [
+              54,
+              76
+            ],
+            [
+              69,
+              76
+            ],
+            [
+              85,
+              76
+            ],
+            [
+              104,
+              76
+            ],
+            [
+              119,
+              76
+            ],
+            [
+              136,
+              76
+            ]
+          ]
+        }
+      },
+      {
+        "item": 4,
+        "open": {
+          "before": {
+            "open": false,
+            "rendered": 1,
+            "h": 0
+          },
+          "after": {
+            "open": true,
+            "h": 76
+          },
+          "framesTotal": 56,
+          "midFrames": 20,
+          "first": [
+            [
+              0,
+              0
+            ],
+            [
+              5,
+              0
+            ],
+            [
+              22,
+              11
+            ],
+            [
+              38,
+              21
+            ],
+            [
+              55,
+              30
+            ],
+            [
+              71,
+              39
+            ],
+            [
+              89,
+              45
+            ],
+            [
+              105,
+              51
+            ],
+            [
+              123,
+              56
+            ],
+            [
+              137,
+              60
+            ]
+          ]
+        },
+        "close": {
+          "before": {
+            "open": true,
+            "rendered": 1,
+            "h": 76
+          },
+          "after": {
+            "open": false,
+            "h": 76
+          },
+          "framesTotal": 56,
+          "midFrames": 0,
+          "first": [
+            [
+              1,
+              76
+            ],
+            [
+              10,
+              76
+            ],
+            [
+              25,
+              76
+            ],
+            [
+              40,
+              76
+            ],
+            [
+              58,
+              76
+            ],
+            [
+              75,
+              76
+            ],
+            [
+              91,
+              76
+            ],
+            [
+              108,
+              76
+            ],
+            [
+              127,
+              76
+            ],
+            [
+              141,
+              76
+            ]
+          ]
+        }
+      },
+      {
+        "item": 5,
+        "open": {
+          "before": {
+            "open": false,
+            "rendered": 1,
+            "h": 0
+          },
+          "after": {
+            "open": true,
+            "h": 56
+          },
+          "framesTotal": 56,
+          "midFrames": 19,
+          "first": [
+            [
+              0,
+              0
+            ],
+            [
+              11,
+              0
+            ],
+            [
+              28,
+              8
+            ],
+            [
+              44,
+              16
+            ],
+            [
+              61,
+              22
+            ],
+            [
+              77,
+              28
+            ],
+            [
+              94,
+              33
+            ],
+            [
+              111,
+              38
+            ],
+            [
+              127,
+              41
+            ],
+            [
+              144,
+              44
+            ]
+          ]
+        },
+        "close": {
+          "before": {
+            "open": true,
+            "rendered": 1,
+            "h": 56
+          },
+          "after": {
+            "open": false,
+            "h": 56
+          },
+          "framesTotal": 56,
+          "midFrames": 0,
+          "first": [
+            [
+              0,
+              56
+            ],
+            [
+              11,
+              56
+            ],
+            [
+              27,
+              56
+            ],
+            [
+              44,
+              56
+            ],
+            [
+              61,
+              56
+            ],
+            [
+              78,
+              56
+            ],
+            [
+              94,
+              56
+            ],
+            [
+              111,
+              56
+            ],
+            [
+              128,
+              56
+            ],
+            [
+              144,
+              56
+            ]
+          ]
+        }
+      }
+    ]
+  },
+  "dashboardPath": "/dashboard",
+  "hover": [
+    {
+      "fx": 0.5,
+      "pointer": [
+        195,
+        378
+      ],
+      "m": {
+        "viewport": [
+          390,
+          844
+        ],
+        "chart": {
+          "x": 37,
+          "y": 238,
+          "r": 353,
+          "b": 518,
+          "w": 316,
+          "h": 280
+        },
+        "referenceGroups": [
+          {
+            "line": {
+              "x": 155,
+              "y": 480,
+              "r": 329,
+              "b": 480,
+              "w": 174,
+              "h": 0
+            },
+            "labels": [
+              {
+                "t": "₹0 Danger Line",
+                "r": {
+                  "x": 166,
+                  "y": 450,
+                  "r": 249,
+                  "b": 467,
+                  "w": 83,
+                  "h": 17
+                }
+              }
+            ]
+          },
+          {
+            "line": {
+              "x": 155,
+              "y": 446,
+              "r": 329,
+              "b": 446,
+              "w": 174,
+              "h": 0
+            },
+            "labels": [
+              {
+                "t": "Safe Buffer",
+                "r": {
+                  "x": 263,
+                  "y": 446,
+                  "r": 325,
+                  "b": 463,
+                  "w": 62,
+                  "h": 17
+                }
+              }
+            ]
+          }
+        ],
+        "labelLabelOverlaps": [],
+        "labelLineHits": [
+          "Safe Buffer"
+        ],
+        "labelsOutsideChart": [],
+        "tooltip": {
+          "visibility": "visible",
+          "rect": {
+            "x": 155,
+            "y": 388,
+            "r": 322,
+            "b": 466,
+            "w": 167,
+            "h": 78
+          },
+          "text": "2026-11-29Baseline : ₹1,02,500",
+          "insideChartX": true,
+          "insideViewportX": true
+        },
+        "controlsUnderTooltip": [],
+        "labelsUnderTooltip": [
+          "₹0 Danger Line",
+          "Safe Buffer"
+        ]
+      }
+    },
+    {
+      "fx": 0.15,
+      "pointer": [
+        84,
+        378
+      ],
+      "m": {
+        "viewport": [
+          390,
+          844
+        ],
+        "chart": {
+          "x": 37,
+          "y": 238,
+          "r": 353,
+          "b": 518,
+          "w": 316,
+          "h": 280
+        },
+        "referenceGroups": [
+          {
+            "line": {
+              "x": 155,
+              "y": 480,
+              "r": 329,
+              "b": 480,
+              "w": 174,
+              "h": 0
+            },
+            "labels": [
+              {
+                "t": "₹0 Danger Line",
+                "r": {
+                  "x": 166,
+                  "y": 450,
+                  "r": 249,
+                  "b": 467,
+                  "w": 83,
+                  "h": 17
+                }
+              }
+            ]
+          },
+          {
+            "line": {
+              "x": 155,
+              "y": 446,
+              "r": 329,
+              "b": 446,
+              "w": 174,
+              "h": 0
+            },
+            "labels": [
+              {
+                "t": "Safe Buffer",
+                "r": {
+                  "x": 263,
+                  "y": 446,
+                  "r": 325,
+                  "b": 463,
+                  "w": 62,
+                  "h": 17
+                }
+              }
+            ]
+          }
+        ],
+        "labelLabelOverlaps": [],
+        "labelLineHits": [
+          "Safe Buffer"
+        ],
+        "labelsOutsideChart": [],
+        "tooltip": {
+          "visibility": "hidden",
+          "rect": null,
+          "text": "2026-11-29",
+          "insideChartX": false,
+          "insideViewportX": false
+        },
+        "controlsUnderTooltip": [],
+        "labelsUnderTooltip": []
+      }
+    },
+    {
+      "fx": 0.85,
+      "pointer": [
+        306,
+        378
+      ],
+      "m": {
+        "viewport": [
+          390,
+          844
+        ],
+        "chart": {
+          "x": 37,
+          "y": 238,
+          "r": 353,
+          "b": 518,
+          "w": 316,
+          "h": 280
+        },
+        "referenceGroups": [
+          {
+            "line": {
+              "x": 155,
+              "y": 480,
+              "r": 329,
+              "b": 480,
+              "w": 174,
+              "h": 0
+            },
+            "labels": [
+              {
+                "t": "₹0 Danger Line",
+                "r": {
+                  "x": 166,
+                  "y": 450,
+                  "r": 249,
+                  "b": 467,
+                  "w": 83,
+                  "h": 17
+                }
+              }
+            ]
+          },
+          {
+            "line": {
+              "x": 155,
+              "y": 446,
+              "r": 329,
+              "b": 446,
+              "w": 174,
+              "h": 0
+            },
+            "labels": [
+              {
+                "t": "Safe Buffer",
+                "r": {
+                  "x": 263,
+                  "y": 446,
+                  "r": 325,
+                  "b": 463,
+                  "w": 62,
+                  "h": 17
+                }
+              }
+            ]
+          }
+        ],
+        "labelLabelOverlaps": [],
+        "labelLineHits": [
+          "Safe Buffer"
+        ],
+        "labelsOutsideChart": [],
+        "tooltip": {
+          "visibility": "visible",
+          "rect": {
+            "x": 155,
+            "y": 388,
+            "r": 321,
+            "b": 466,
+            "w": 166,
+            "h": 78
+          },
+          "text": "2026-12-18Baseline : ₹1,32,500",
+          "insideChartX": true,
+          "insideViewportX": true
+        },
+        "controlsUnderTooltip": [],
+        "labelsUnderTooltip": [
+          "₹0 Danger Line",
+          "Safe Buffer"
+        ]
+      }
+    }
+  ],
+  "tap": [
+    {
+      "phase": "touchStart",
+      "m": {
+        "viewport": [
+          390,
+          844
+        ],
+        "chart": {
+          "x": 37,
+          "y": 238,
+          "r": 353,
+          "b": 518,
+          "w": 316,
+          "h": 280
+        },
+        "referenceGroups": [
+          {
+            "line": {
+              "x": 155,
+              "y": 480,
+              "r": 329,
+              "b": 480,
+              "w": 174,
+              "h": 0
+            },
+            "labels": [
+              {
+                "t": "₹0 Danger Line",
+                "r": {
+                  "x": 166,
+                  "y": 450,
+                  "r": 249,
+                  "b": 467,
+                  "w": 83,
+                  "h": 17
+                }
+              }
+            ]
+          },
+          {
+            "line": {
+              "x": 155,
+              "y": 446,
+              "r": 329,
+              "b": 446,
+              "w": 174,
+              "h": 0
+            },
+            "labels": [
+              {
+                "t": "Safe Buffer",
+                "r": {
+                  "x": 263,
+                  "y": 446,
+                  "r": 325,
+                  "b": 463,
+                  "w": 62,
+                  "h": 17
+                }
+              }
+            ]
+          }
+        ],
+        "labelLabelOverlaps": [],
+        "labelLineHits": [
+          "Safe Buffer"
+        ],
+        "labelsOutsideChart": [],
+        "tooltip": {
+          "visibility": "visible",
+          "rect": {
+            "x": 155,
+            "y": 388,
+            "r": 321,
+            "b": 466,
+            "w": 166,
+            "h": 78
+          },
+          "text": "2026-12-18Baseline : ₹1,32,500",
+          "insideChartX": true,
+          "insideViewportX": true
+        },
+        "controlsUnderTooltip": [],
+        "labelsUnderTooltip": [
+          "₹0 Danger Line",
+          "Safe Buffer"
+        ]
+      }
+    },
+    {
+      "phase": "touchEnd",
+      "m": {
+        "viewport": [
+          390,
+          844
+        ],
+        "chart": {
+          "x": 37,
+          "y": 238,
+          "r": 353,
+          "b": 518,
+          "w": 316,
+          "h": 280
+        },
+        "referenceGroups": [
+          {
+            "line": {
+              "x": 155,
+              "y": 480,
+              "r": 329,
+              "b": 480,
+              "w": 174,
+              "h": 0
+            },
+            "labels": [
+              {
+                "t": "₹0 Danger Line",
+                "r": {
+                  "x": 166,
+                  "y": 450,
+                  "r": 249,
+                  "b": 467,
+                  "w": 83,
+                  "h": 17
+                }
+              }
+            ]
+          },
+          {
+            "line": {
+              "x": 155,
+              "y": 446,
+              "r": 329,
+              "b": 446,
+              "w": 174,
+              "h": 0
+            },
+            "labels": [
+              {
+                "t": "Safe Buffer",
+                "r": {
+                  "x": 263,
+                  "y": 446,
+                  "r": 325,
+                  "b": 463,
+                  "w": 62,
+                  "h": 17
+                }
+              }
+            ]
+          }
+        ],
+        "labelLabelOverlaps": [],
+        "labelLineHits": [
+          "Safe Buffer"
+        ],
+        "labelsOutsideChart": [],
+        "tooltip": {
+          "visibility": "visible",
+          "rect": {
+            "x": 155,
+            "y": 388,
+            "r": 322,
+            "b": 466,
+            "w": 167,
+            "h": 78
+          },
+          "text": "2026-11-29Baseline : ₹1,02,500",
+          "insideChartX": true,
+          "insideViewportX": true
+        },
+        "controlsUnderTooltip": [],
+        "labelsUnderTooltip": [
+          "₹0 Danger Line",
+          "Safe Buffer"
+        ]
+      }
+    }
+  ]
+}

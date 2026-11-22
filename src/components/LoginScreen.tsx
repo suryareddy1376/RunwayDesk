@@ -17,6 +17,8 @@ type Mode = "signin" | "signup";
 
 type FieldErrors = { email?: string; password?: string };
 
+type LoginScreenProps = { initialMode?: "signin" | "signup" };
+
 function messageOf(err: unknown): string {
   return err instanceof Error && err.message ? err.message : "Something went wrong. Try again.";
 }
@@ -32,9 +34,9 @@ function validate(email: string, password: string): FieldErrors {
   return errors;
 }
 
-export default function LoginScreen() {
+export default function LoginScreen({ initialMode = "signin" }: LoginScreenProps) {
   const { signIn, signUp } = useAuth();
-  const [mode, setMode] = useState<Mode>("signin");
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -120,7 +122,7 @@ export default function LoginScreen() {
           disabled={busy}
           className={`mb-6 flex w-full items-center justify-center rounded-lg bg-blue px-3 py-2.5 button-md text-white transition-transform duration-150 ease-emphasis hover:bg-blue/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 ${FOCUS_RING}`}
         >
-          Launch Demo Studio
+          Launch Studio Sandbox
         </button>
 
         <div role="tablist" aria-label="Account mode" className="mb-6 grid grid-cols-2 gap-1 rounded-lg bg-subtle p-1">
