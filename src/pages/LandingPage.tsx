@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { MotionConfig, motion, AnimatePresence, useScroll, useTransform, type MotionValue } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
@@ -85,10 +86,23 @@ function Reveal({ children, className = "" }: { children: ReactNode; className?:
 /* ------------------------------------------------------------------ */
 
 const CHART_W = 300;
-const CHART_H = 120;
 
 const toPoints = (fn: (i: number) => number) =>
   Array.from({ length: 30 }, (_, i) => `${((i * CHART_W) / 29).toFixed(1)},${fn(i).toFixed(1)}`).join(" ");
+
+/* Convert the 300x120 point list into 420x160 viewBox coordinates. */
+const SVG_W = 420;
+const SVG_H = 160;
+const scalePoints = (points: string) =>
+  points.split(" ").map((p) => {
+    const [x, y] = p.split(",").map(Number);
+    return [(x * SVG_W) / CHART_W, (y * SVG_H) / 120] as const;
+  });
+const toPathD = (points: string) =>
+  scalePoints(points)
+    .map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`)
+    .join(" ");
+const DAY_19_INDEX = 18;
 
 const baselineCurve = (i: number) => 96 - i * 1.4 + 5 * Math.sin(i / 2.5);
 const lateCurve = (i: number) => baselineCurve(i) + 18 * Math.exp(-((i - 18) ** 2) / 20);
@@ -101,7 +115,7 @@ const SCENARIOS = [
     label: "Baseline",
     figure: "+₹92,500",
     figureTone: "text-emerald-600",
-    stroke: "stroke-neutral-900",
+    hex: "#059669",
     points: toPoints(baselineCurve),
   },
   {
@@ -109,7 +123,7 @@ const SCENARIOS = [
     label: "Client 15d late",
     figure: "\u2212₹2,500",
     figureTone: "text-rose-600",
-    stroke: "stroke-rose-500",
+    hex: "#e11d48",
     points: toPoints(lateCurve),
   },
   {
@@ -117,7 +131,7 @@ const SCENARIOS = [
     label: "INV 104 recovered",
     figure: "+₹52,500",
     figureTone: "text-emerald-600",
-    stroke: "stroke-emerald-600",
+    hex: "#059669",
     points: toPoints(recoveredCurve),
   },
 ] as const;
@@ -140,54 +154,38 @@ function ForecastCard() {
         {scenario.figure}
       </p>
 
-      <div className="relative mt-6 h-40 w-full">
-        <svg
-          aria-hidden="true"
-          viewBox={`0 0 ${CHART_W} ${CHART_H}`}
-          preserveAspectRatio="none"
-          className="absolute inset-0 h-full w-full overflow-visible"
-        >
+      <div className="relative mt-6 h-[180px] w-full">
+        <svg viewBox="0 0 420 160" className="w-full h-full block" aria-hidden="true">
           <line
             x1="0"
-            x2={CHART_W}
+            x2="420"
             y1="70"
             y2="70"
-            className="stroke-amber-500"
+            stroke="#d97706"
             strokeWidth="1.5"
-            strokeDasharray="6 4"
-            vectorEffect="non-scaling-stroke"
+            strokeDasharray="4 4"
           />
-          <line
-            x1="0"
-            x2={CHART_W}
-            y1="112"
-            y2="112"
-            className="stroke-rose-500"
-            strokeWidth="1.5"
-            vectorEffect="non-scaling-stroke"
+          <line x1="0" x2="420" y1="112" y2="112" stroke="#e11d48" strokeWidth="1.5" />
+          <motion.path
+            key={scenario.id}
+            d={toPathD(scenario.points)}
+            fill="none"
+            stroke={scenario.hex}
+            strokeWidth={2.5}
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+          />
+          <motion.circle
+            r={5}
+            fill={scenario.hex}
+            animate={{
+              cx: scalePoints(scenario.points)[DAY_19_INDEX][0],
+              cy: scalePoints(scenario.points)[DAY_19_INDEX][1],
+            }}
+            transition={{ ease: [0.22, 1, 0.36, 1] }}
           />
         </svg>
-
-        {SCENARIOS.map((s, i) => (
-          <svg
-            key={s.id}
-            aria-hidden="true"
-            viewBox={`0 0 ${CHART_W} ${CHART_H}`}
-            preserveAspectRatio="none"
-            className={`absolute inset-0 h-full w-full transition duration-500 ${EASE} ${MOTION} ${
-              i === active ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"
-            }`}
-          >
-            <polyline
-              points={s.points}
-              fill="none"
-              strokeWidth="2"
-              strokeLinejoin="round"
-              vectorEffect="non-scaling-stroke"
-              className={s.stroke}
-            />
-          </svg>
-        ))}
       </div>
 
       <ul className="mt-4 flex flex-wrap gap-4 text-xs text-neutral-600">
@@ -226,82 +224,123 @@ function ForecastCard() {
 /* Navigation                                                           */
 /* ------------------------------------------------------------------ */
 
+const MotionLink = motion(Link);
+
 function SiteNav({ signedIn }: { signedIn: boolean }) {
   const [open, setOpen] = useState(false);
   const cta = signedIn
     ? { to: "/dashboard", label: "Open dashboard" }
     : { to: "/login", label: "Log in" };
 
+  // The drawer is rendered as a sibling of the header, not a child: the header
+  // uses backdrop-blur, which would otherwise trap the fixed drawer inside it.
   return (
-    <header className="sticky top-0 z-50 px-4 pt-4 md:fixed md:inset-x-0 md:top-4">
-      <nav
-        aria-label="Primary"
-        className="mx-auto flex max-w-4xl items-center justify-between rounded-xl border border-neutral-200 bg-white/80 px-4 py-2 backdrop-blur-md"
-      >
-        <Link to="/" className={BRAND}>
-          RunwayDesk
-        </Link>
-
-        <ul className="hidden items-center gap-2 md:flex">
-          {NAV_LINKS.map((link) => (
-            <li key={link.href}>
-              <a href={link.href} className={TEXT_LINK}>
-                {link.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-
-        <div className="flex items-center gap-2">
-          <Link to={cta.to} className={`${SECONDARY} hidden md:inline-flex`}>
-            {cta.label}
+    <>
+      <motion.header className="sticky top-0 z-40 w-full bg-white/90 backdrop-blur-md border-b border-neutral-200">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link to="/" className={BRAND}>
+            RunwayDesk
           </Link>
-          <button
-            type="button"
-            aria-expanded={open}
-            aria-controls="mobile-menu"
-            aria-label={open ? "Close menu" : "Open menu"}
-            onClick={() => setOpen((o) => !o)}
-            className={`${SECONDARY} md:hidden`}
-          >
-            {open ? <X size={20} aria-hidden /> : <List size={20} aria-hidden />}
-          </button>
-        </div>
-      </nav>
 
-      <div
-        id="mobile-menu"
-        className={`fixed inset-0 z-40 flex flex-col gap-2 bg-white px-4 pb-8 pt-24 transition-opacity duration-300 ${EASE} ${MOTION} md:hidden ${
-          open ? "visible opacity-100" : "invisible opacity-0"
-        }`}
-      >
-        {NAV_LINKS.map((link, i) => (
-          <a
-            key={link.href}
-            href={link.href}
-            onClick={() => setOpen(false)}
-            style={{ transitionDelay: open ? `${Math.min(i * 60, 400)}ms` : "0ms" }}
-            className={`rounded-md px-2 py-2 text-lg text-neutral-900 transition duration-500 ${EASE} ${MOTION} active:scale-[0.98] ${FOCUS} ${
-              open ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
-            }`}
+          <ul className="hidden items-center gap-2 md:flex">
+            {NAV_LINKS.map((link) => (
+              <li key={link.href}>
+                <motion.a
+                  href={link.href}
+                  className={TEXT_LINK}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  {link.label}
+                </motion.a>
+              </li>
+            ))}
+          </ul>
+
+          <div className="flex items-center gap-2">
+            <MotionLink
+              to={cta.to}
+              className={`${SECONDARY} hidden md:inline-flex`}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              {cta.label}
+            </MotionLink>
+            <motion.button
+              type="button"
+              aria-expanded={open}
+              aria-controls="mobile-menu"
+              aria-label={open ? "Close menu" : "Open menu"}
+              onClick={() => setOpen((o) => !o)}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+              className={`${SECONDARY} md:hidden`}
+            >
+              {open ? <X size={20} aria-hidden /> : <List size={20} aria-hidden />}
+            </motion.button>
+          </div>
+        </div>
+      </motion.header>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            key="mobile-menu"
+            id="mobile-menu"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-50 flex flex-col gap-2 bg-white/95 px-4 pb-8 pt-24 backdrop-blur-md md:hidden"
           >
-            {link.label}
-          </a>
-        ))}
-        <Link
-          to={cta.to}
-          onClick={() => setOpen(false)}
-          style={{ transitionDelay: open ? `${Math.min(NAV_LINKS.length * 60, 400)}ms` : "0ms" }}
-          className={`${PRIMARY} mt-4 self-start transition duration-500 ${EASE} ${
-            open ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
-          }`}
-        >
-          {cta.label}
-        </Link>
-      </div>
-    </header>
+            <motion.button
+              type="button"
+              aria-label="Close menu"
+              onClick={() => setOpen(false)}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+              className={`${SECONDARY} absolute right-4 top-4`}
+            >
+              <X size={20} aria-hidden />
+            </motion.button>
+
+            {NAV_LINKS.map((link, i) => (
+              <motion.a
+                key={link.href}
+                href={link.href}
+                onClick={() => setOpen(false)}
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.06, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                whileTap={{ scale: 0.98 }}
+                className={`rounded-md px-2 py-2 text-lg text-neutral-900 ${FOCUS}`}
+              >
+                {link.label}
+              </motion.a>
+            ))}
+            <MotionLink
+              to={cta.to}
+              onClick={() => setOpen(false)}
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                delay: NAV_LINKS.length * 0.06,
+                duration: 0.5,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+              className={`${PRIMARY} mt-4 self-start`}
+            >
+              {cta.label}
+            </MotionLink>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
+
 
 /* ------------------------------------------------------------------ */
 /* Problem to solution                                                  */
@@ -317,20 +356,49 @@ function ProblemSection() {
       </Reveal>
 
       <div className="mt-12 grid gap-6 md:grid-cols-2">
-        <Reveal>
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="h-full"
+        >
           <article className="flex h-full flex-col gap-4 rounded-xl border border-neutral-200 bg-white p-6">
             <h3 className="text-lg font-semibold text-neutral-900">Today</h3>
             <p className="text-sm text-neutral-600">
               Backward looking spreadsheets and WhatsApp threads
             </p>
+            <div className="rounded-xl border border-neutral-200 bg-neutral-50/60 p-4">
+              <div className="flex flex-col gap-2">
+                {["Sheet v3 FINAL (2)", "WhatsApp: did they pay?", "Invoice_old.xlsx", "Final FINAL use this one"].map(
+                  (label, i) => (
+                    <motion.span
+                      key={label}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: i * 0.08 }}
+                      className="w-fit rounded-md border border-neutral-200 bg-white px-3 py-1.5 text-xs text-neutral-700"
+                    >
+                      {label}
+                    </motion.span>
+                  ),
+                )}
+              </div>
+            </div>
             <span className="mt-auto inline-flex w-fit items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
               <WarningCircle size={14} aria-hidden />
               3 overdue invoices
             </span>
           </article>
-        </Reveal>
+        </motion.div>
 
-        <Reveal>
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="h-full"
+        >
           <article className="flex h-full flex-col gap-4 rounded-xl border border-neutral-200 bg-white p-6">
             <h3 className="text-lg font-semibold text-neutral-900">With RunwayDesk</h3>
             <p className="text-sm text-neutral-600">A forward looking command center</p>
@@ -349,13 +417,40 @@ function ProblemSection() {
                 className="stroke-neutral-900"
               />
             </svg>
+            <div className="rounded-xl border border-neutral-200 bg-neutral-50/60 p-4">
+              <ul className="flex flex-col gap-2.5">
+                {[
+                  { label: "Day 19 covered", color: "#059669" },
+                  { label: "INV 104 due in 3 days", color: "#d97706" },
+                  { label: "Client 15d late", color: "#e11d48" },
+                ].map((row, i) => (
+                  <motion.li
+                    key={row.label}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: 0.2 + i * 0.1 }}
+                    className="flex items-center gap-2.5 text-xs text-neutral-700"
+                  >
+                    <motion.span
+                      aria-hidden="true"
+                      className="h-2 w-2 shrink-0 rounded-full"
+                      style={{ backgroundColor: row.color }}
+                      animate={{ scale: [1, 1.25, 1] }}
+                      transition={{ duration: 2.4, ease: [0.22, 1, 0.36, 1], repeat: Infinity }}
+                    />
+                    <span className="font-mono tabular-nums">{row.label}</span>
+                  </motion.li>
+                ))}
+              </ul>
+            </div>
             <span className="mt-auto inline-flex w-fit items-center gap-2 rounded-md border border-rose-200 bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700">
               <Clock size={14} aria-hidden />
               Day 19 shortfall flagged
             </span>
           </article>
-        </Reveal>
+        </motion.div>
       </div>
+
     </section>
   );
 }
@@ -369,156 +464,237 @@ const TAGLINE_WORDS =
     " ",
   );
 
-function TaglineWord({ word, index }: { word: string; index: number }) {
-  // Trigger line sits at 60 percent of the viewport height.
-  const { ref, inView } = useInView<HTMLSpanElement>("0px 0px -40% 0px", 0);
+function WordReveal({
+  word,
+  start,
+  end,
+  progress,
+}: {
+  word: string;
+  start: number;
+  end: number;
+  progress: MotionValue<number>;
+}) {
+  const opacity = useTransform(progress, [start, end], [0.25, 1]);
   return (
     <>
-      <span
-        ref={ref}
-        style={{ transitionDelay: `${Math.min(index * 20, 400)}ms` }}
-        className={`inline-block transition-opacity duration-500 ${EASE} motion-reduce:transition-none ${
-          inView ? "opacity-100" : "opacity-[0.3]"
-        }`}
-      >
+      <motion.span style={{ opacity }} className="inline-block">
         {word}
-      </span>{" "}
+      </motion.span>{" "}
     </>
   );
 }
 
 function TaglineSection() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start 0.85", "end 0.45"],
+  });
+  const total = TAGLINE_WORDS.length;
+
   return (
-    <section aria-labelledby="tagline-heading" className="px-4 py-24">
+    <section ref={sectionRef} aria-labelledby="tagline-heading" className="px-4 py-24">
       <h2
         id="tagline-heading"
         style={{ textWrap: "balance" } as CSSProperties}
         className="mx-auto max-w-[680px] text-3xl font-semibold tracking-tight text-neutral-900 md:text-4xl"
       >
         {TAGLINE_WORDS.map((word, i) => (
-          <TaglineWord key={`${word}-${i}`} word={word} index={i} />
+          <WordReveal
+            key={`${word}-${i}`}
+            word={word}
+            start={i / total}
+            end={(i + 1) / total}
+            progress={scrollYProgress}
+          />
         ))}
       </h2>
     </section>
   );
 }
 
+
 /* ------------------------------------------------------------------ */
 /* Benefits and micro graphics                                          */
 /* ------------------------------------------------------------------ */
 
+const BENEFIT_FRAME = "rounded-xl border border-neutral-200 bg-neutral-50/60 p-4";
+
 function CurveGraphic() {
   return (
-    <div className="relative h-24 rounded-lg border border-neutral-200 bg-neutral-50 p-2">
-      <svg aria-hidden="true" viewBox="0 0 200 80" preserveAspectRatio="none" className="h-full w-full">
-        <line
-          x1="0"
-          x2="200"
-          y1="50"
-          y2="50"
-          className="stroke-amber-500"
-          strokeWidth="1.5"
-          strokeDasharray="5 4"
-          vectorEffect="non-scaling-stroke"
-        />
-        <polyline
-          points="0,20 25,26 50,30 75,38 100,44 125,52 150,58 175,62 200,66"
-          fill="none"
-          strokeWidth="2"
-          strokeLinejoin="round"
-          vectorEffect="non-scaling-stroke"
-          className="stroke-neutral-900"
-        />
-      </svg>
-      <span className="absolute right-2 top-2 rounded-md border border-rose-200 bg-white px-2 py-0.5 text-xs font-medium text-rose-700">
-        Day 19
-      </span>
+    <div className={BENEFIT_FRAME}>
+      <div className="relative">
+        <svg aria-hidden="true" viewBox="0 0 240 100" className="w-full h-auto block">
+          <line x1="0" x2="240" y1="40" y2="40" stroke="#d97706" strokeWidth={1.5} strokeDasharray="4 4" />
+          <motion.path
+            d="M0 20 C40 22 80 30 110 36 C130 40 140 58 150 64 C170 72 200 76 240 78"
+            fill="none"
+            stroke="#e11d48"
+            strokeWidth={2.5}
+            initial={{ pathLength: 0 }}
+            whileInView={{ pathLength: 1 }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+          />
+        </svg>
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.9, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="absolute right-2 top-2 rounded-md border border-rose-600 bg-white px-2 py-0.5 text-xs font-medium text-rose-600 tabular-nums"
+        >
+          Day 19
+        </motion.div>
+      </div>
     </div>
   );
 }
 
-const TONES = [
+const REMINDER_TONES = [
   {
     name: "Friendly",
-    text: "Hi Asha, a quick note that invoice 104 is still open. Could you share a payment date when you get a moment?",
+    text: "Hi, just a gentle reminder about invoice 104. Happy to help if anything is unclear.",
   },
   {
     name: "Firm",
-    text: "Hi Asha, invoice 104 is now 9 days past due. Please confirm a payment date by Friday.",
+    text: "Invoice 104 is now overdue. Please arrange payment this week.",
   },
   {
     name: "Final",
-    text: "Asha, invoice 104 is 20 days overdue. Payment is needed by Friday, or we will have to pause work until it clears.",
+    text: "This is the final reminder for invoice 104. Please pay or contact me today.",
   },
 ];
 
 function ToneGraphic() {
   const [tone, setTone] = useState(0);
+  const active = REMINDER_TONES[tone];
   return (
-    <div className="flex flex-col gap-3">
+    <div className={`${BENEFIT_FRAME} flex flex-col gap-3`}>
       <div role="group" aria-label="Reminder tone" className="flex flex-wrap gap-2">
-        {TONES.map((t, i) => (
-          <button
+        {REMINDER_TONES.map((t, i) => (
+          <motion.button
             key={t.name}
             type="button"
             aria-pressed={i === tone}
             onClick={() => setTone(i)}
-            className={`rounded-md border px-2 py-0.5 text-xs font-medium transition duration-300 ${EASE} active:scale-[0.98] ${FOCUS} ${MOTION} ${
-              i === tone
-                ? "border-neutral-900 bg-neutral-900 text-white"
-                : "border-neutral-200 bg-white text-neutral-900 hover:bg-neutral-50"
+            whileHover={{ y: -1 }}
+            whileTap={{ scale: 0.98 }}
+            className={`relative rounded-full border px-3 py-1 text-xs font-medium ${
+              i === tone ? "border-neutral-900 text-white" : "border-neutral-200 bg-white text-neutral-900"
             }`}
           >
-            {t.name}
-          </button>
+            {i === tone && (
+              <motion.span
+                layoutId="tonePill"
+                className="absolute inset-0 rounded-full bg-neutral-900"
+                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              />
+            )}
+            <span className="relative">{t.name}</span>
+          </motion.button>
         ))}
       </div>
-      <p aria-live="polite" className="rounded-lg border border-neutral-200 bg-neutral-50 p-3 text-sm text-neutral-700">
-        {TONES[tone].text}
-      </p>
+      <AnimatePresence mode="wait">
+        <motion.p
+          key={active.name}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          className="rounded-lg border border-neutral-200 bg-white p-3 text-sm text-neutral-900"
+        >
+          {active.text}
+        </motion.p>
+      </AnimatePresence>
     </div>
   );
 }
+
+const QUICK_ADD_CHIPS = [
+  { label: "Bill", start: 0.22, mono: false },
+  { label: "Figma", start: 0.34, mono: false },
+  { label: "₹3,500", start: 0.46, mono: true },
+  { label: "Due in 5 days", start: 0.58, mono: true },
+];
 
 function QuickAddGraphic() {
-  const { ref, inView } = useInView<HTMLDivElement>();
   return (
-    <div className="flex flex-col gap-2">
-      <div
-        aria-hidden="true"
-        className="flex items-center justify-between rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-700"
-      >
-        <span>Bill Figma 3500 due in 5 days</span>
-        <span className="rounded-md bg-neutral-900 px-2 py-0.5 text-xs font-medium text-white">Add</span>
-      </div>
-      <div ref={ref}>
-        <span
-          className={`inline-flex rounded-md border border-neutral-200 bg-neutral-50 px-2 py-0.5 text-xs font-medium text-neutral-900 transition duration-500 ${EASE} ${MOTION} ${
-            inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"
-          }`}
+    <div className={`${BENEFIT_FRAME} flex flex-col gap-3`}>
+      <div aria-hidden="true" className="rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-700">
+        <motion.span
+          className="block"
+          animate={{ opacity: [0, 1, 1, 0] }}
+          transition={{
+            duration: 5,
+            times: [0, 0.04, 0.86, 0.94],
+            repeat: Infinity,
+            repeatDelay: 1.2,
+            ease: [0.22, 1, 0.36, 1],
+          }}
         >
-          Bill, Figma, ₹3,500, due in 5 days
-        </span>
+          Bill Figma 3500 due in 5 days
+        </motion.span>
+      </div>
+      <div aria-hidden="true" className="flex flex-wrap gap-2">
+        {QUICK_ADD_CHIPS.map((chip) => (
+          <motion.span
+            key={chip.label}
+            className={`inline-flex rounded-md border border-neutral-200 bg-neutral-50 px-2 py-0.5 text-xs font-medium text-neutral-900 ${
+              chip.mono ? "font-mono tabular-nums" : ""
+            }`}
+            animate={{ opacity: [0, 0, 1, 1, 0], y: [4, 4, 0, 0, 0] }}
+            transition={{
+              duration: 5,
+              times: [0, chip.start, chip.start + 0.06, 0.88, 1],
+              repeat: Infinity,
+              repeatDelay: 1.2,
+              ease: [0.22, 1, 0.36, 1],
+            }}
+          >
+            {chip.label}
+          </motion.span>
+        ))}
       </div>
     </div>
   );
 }
 
+const PRIORITY_ROWS = [
+  { label: "INV 104", dot: "bg-rose-600", amount: "₹55,000", status: "Overdue", hot: true },
+  { label: "INV 117", dot: "bg-amber-500", status: "Due in 3 days", hot: false },
+  { label: "Rent", dot: "bg-emerald-500", status: "Scheduled", hot: false },
+];
+
 function PriorityGraphic() {
-  const [sent, setSent] = useState(false);
   return (
-    <div className="flex items-center justify-between gap-4 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2">
-      <p className="text-sm font-medium text-neutral-900">INV 104, ₹55,000, overdue</p>
-      <button
-        type="button"
-        onClick={() => setSent(true)}
-        className={`${PRIMARY} shrink-0`}
-      >
-        {sent ? "Reminder sent" : "Send reminder"}
-      </button>
+    <div className={`${BENEFIT_FRAME} flex flex-col gap-2`}>
+      {PRIORITY_ROWS.map((row, i) => (
+        <motion.div
+          key={row.label}
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.6, delay: i * 0.12, ease: [0.22, 1, 0.36, 1] }}
+          className={`flex items-center justify-between rounded-md border bg-white px-3 py-2 text-sm ${
+            row.hot ? "border-rose-200" : "border-neutral-200"
+          }`}
+        >
+          <span className="flex items-center gap-2 font-medium text-neutral-900">
+            <span aria-hidden="true" className={`h-2 w-2 rounded-full ${row.dot}`} />
+            {row.label}
+          </span>
+          <span className="flex items-center gap-3">
+            {row.amount && <span className="font-mono tabular-nums text-neutral-900">{row.amount}</span>}
+            <span className={row.hot ? "font-medium text-rose-600" : "text-neutral-600"}>{row.status}</span>
+          </span>
+        </motion.div>
+      ))}
     </div>
   );
 }
+
 
 function BenefitCard({ title, outcome, children }: { title: string; outcome: string; children: ReactNode }) {
   return (
@@ -577,6 +753,7 @@ function BenefitsSection() {
 /* How it works, proof strip, FAQ                                       */
 /* ------------------------------------------------------------------ */
 
+
 const STEPS = [
   "Log invoices and fixed bills in one line",
   "Stress test late client payments on a 30 to 90 day chart",
@@ -591,18 +768,42 @@ function HowItWorksSection() {
           How it works
         </h2>
       </Reveal>
-      <ol className="mt-12 grid gap-6 md:grid-cols-3">
-        {STEPS.map((step, i) => (
-          <Reveal key={step}>
-            <li className="flex h-full flex-col gap-4 rounded-xl border border-neutral-200 bg-white p-6">
+      <div className="relative mt-12">
+        <svg
+          viewBox="0 0 1000 8"
+          preserveAspectRatio="none"
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-1/2 hidden h-2 w-full -translate-y-1/2 md:block"
+        >
+          <motion.path
+            d="M0 4 L1000 4"
+            stroke="#d4d4d4"
+            strokeWidth={2}
+            fill="none"
+            initial={{ pathLength: 0 }}
+            whileInView={{ pathLength: 1 }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+          />
+        </svg>
+        <ol className="relative grid gap-6 md:grid-cols-3">
+          {STEPS.map((step, i) => (
+            <motion.li
+              key={step}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: i * 0.12 }}
+              className="flex h-full flex-col gap-4 rounded-xl border border-neutral-200 bg-white p-6"
+            >
               <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-200 font-mono text-sm tabular-nums text-neutral-900">
                 {i + 1}
               </span>
               <h3 className="text-xl font-semibold text-neutral-900">{step}</h3>
-            </li>
-          </Reveal>
-        ))}
-      </ol>
+            </motion.li>
+          ))}
+        </ol>
+      </div>
     </section>
   );
 }
@@ -617,13 +818,18 @@ function ProofStrip() {
   return (
     <section aria-label="Production proof" className="mx-auto max-w-6xl px-4 py-24">
       <ul className="grid gap-4 md:grid-cols-3">
-        {PROOF.map(({ icon: Icon, text }) => (
-          <Reveal key={text}>
-            <li className="flex h-full items-center gap-3 rounded-xl border border-neutral-200 bg-white p-6 text-sm font-medium text-neutral-900">
-              <Icon size={20} aria-hidden />
-              {text}
-            </li>
-          </Reveal>
+        {PROOF.map(({ icon: Icon, text }, i) => (
+          <motion.li
+            key={text}
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: i * 0.08 }}
+            className="flex h-full items-center gap-3 rounded-xl border border-neutral-200 bg-white p-6 text-sm font-medium text-neutral-900"
+          >
+            <Icon size={20} aria-hidden />
+            {text}
+          </motion.li>
         ))}
       </ul>
     </section>
@@ -657,6 +863,8 @@ const FAQ_ITEMS = [
   },
 ];
 
+const MotionCaret = motion(CaretDown);
+
 function FaqItem({
   question,
   answer,
@@ -684,30 +892,30 @@ function FaqItem({
           className={`flex w-full cursor-pointer items-center justify-between gap-4 rounded-xl px-6 py-4 text-left text-sm font-medium text-neutral-900 transition duration-300 ${EASE} hover:bg-neutral-50 active:scale-[0.98] ${FOCUS} ${MOTION}`}
         >
           {question}
-          <CaretDown
+          <MotionCaret
             size={16}
             aria-hidden
-            className={`shrink-0 transition-transform duration-300 ${EASE} motion-reduce:transition-none ${
-              isOpen ? "rotate-180" : ""
-            }`}
+            className="shrink-0"
+            animate={{ rotate: isOpen ? 180 : 0 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
           />
         </button>
       </h3>
-      <div
-        id={panelId}
-        role="region"
-        aria-labelledby={buttonId}
-        className={`grid transition-[grid-template-rows] duration-500 ${EASE} motion-reduce:transition-none ${
-          isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-        }`}
-      >
-        <div
-          className={`overflow-hidden min-h-0 transition-[visibility] duration-500 motion-reduce:transition-none ${
-            isOpen ? "" : "invisible"
-          }`}
-        >
-          <p className="px-6 pb-4 text-sm text-neutral-600">{answer}</p>
-        </div>
+      <div id={panelId} role="region" aria-labelledby={buttonId}>
+        <AnimatePresence initial={false}>
+          {isOpen && (
+            <motion.div
+              key="answer"
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              className="overflow-hidden"
+            >
+              <p className="px-6 pb-4 text-sm text-neutral-600">{answer}</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
@@ -802,6 +1010,7 @@ export default function LandingPage() {
   const [legal, setLegal] = useState<LegalKey | null>(null);
 
   return (
+    <MotionConfig reducedMotion="user">
     <div className="min-h-screen bg-neutral-50 text-neutral-900">
       <a
         href="#main"
@@ -859,10 +1068,16 @@ export default function LandingPage() {
               migration.
             </p>
             <div className="mt-8 flex justify-center">
-              <Link to="/login" className={PRIMARY}>
+              <MotionLink
+                to="/login"
+                className={PRIMARY}
+                whileHover={{ y: -1 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ ease: [0.22, 1, 0.36, 1] }}
+              >
                 Launch studio sandbox
                 <ArrowRight size={16} aria-hidden />
-              </Link>
+              </MotionLink>
             </div>
           </Reveal>
         </section>
@@ -882,5 +1097,6 @@ export default function LandingPage() {
 
       <LegalDialog doc={legal} onClose={() => setLegal(null)} />
     </div>
+    </MotionConfig>
   );
 }
