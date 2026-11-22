@@ -9,8 +9,14 @@ import {
 } from "react";
 import { useWorkspace, todayIso, WORKSPACE_CHANGED_EVENT } from "../hooks/useWorkspace";
 import { createInvoice, markInvoicePaid } from "../services/db";
+import {
+  fetchInvoiceNudges,
+  latestNudgeLabel,
+  type NudgeRecord,
+} from "../services/invoiceNudgeService";
 import { BUCKET_LABELS, agingBucket, daysOverdue, type AgingBucketLabel } from "../engine/aging";
 import type { Client, FollowupLog, FollowupTone, Invoice } from "../types/database";
+import { InvoiceNudgeModal } from "./InvoiceNudgeModal";
 
 const inrFormatter = new Intl.NumberFormat("en-IN", {
   style: "currency",
@@ -137,6 +143,8 @@ export function ReceivablesView({ openChase }: ReceivablesViewProps) {
   });
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [rowError, setRowError] = useState<{ id: string; message: string } | null>(null);
+  const [nudgeTarget, setNudgeTarget] = useState<ReceivableRow | null>(null);
+  const [nudgesByInvoice, setNudgesByInvoice] = useState<Record<string, NudgeRecord[]>>({});
 
   const rows = useMemo<ReceivableRow[]>(() => {
     if (!data) return [];
@@ -155,6 +163,52 @@ export function ReceivablesView({ openChase }: ReceivablesViewProps) {
     () => sortReceivables(rows, sort.key, sort.direction),
     [rows, sort]
   );
+
+  // Load nudge history once per visible set of invoices. Keyed on the id list
+  // so sorting does not refetch; a failed invoice simply shows no badge.
+  // Key pairs of [invoice id, invoice number] so the effect can fetch by number.
+  const visibleInvoicesKey = JSON.stringify(
+    rows.map((row) => [row.invoice.id, row.invoice.invoice_number])
+  );
+  useEffect(() => {
+    const targets = JSON.parse(visibleInvoicesKey) as [string, string][];
+    if (targets.length === 0) return;
+    let cancelled = false;
+    Promise.all(
+      targets.map(async ([id, invoiceNumber]) => {
+        try {
+          return { id, nudges: await fetchInvoiceNudges(invoiceNumber) };
+        } catch {
+          return { id, nudges: null };
+        }
+      })
+    ).then((results) => {
+      if (cancelled) return;
+      setNudgesByInvoice((prev) => {
+        const next = { ...prev };
+        for (const result of results) {
+          if (result.nudges) next[result.id] = result.nudges;
+        }
+        return next;
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [visibleInvoicesKey]);
+
+  function nudgeLabelFor(invoiceId: string): string | null {
+    return latestNudgeLabel(nudgesByInvoice[invoiceId] ?? [], new Date());
+  }
+
+  async function refetchNudges(invoice: Invoice) {
+    try {
+      const nudges = await fetchInvoiceNudges(invoice.invoice_number);
+      setNudgesByInvoice((prev) => ({ ...prev, [invoice.id]: nudges }));
+    } catch {
+      // Keep the existing badge if the refetch fails.
+    }
+  }
 
   function toggleSort(key: ReceivableSortKey) {
     setSort((prev) =>
@@ -341,6 +395,16 @@ export function ReceivablesView({ openChase }: ReceivablesViewProps) {
                         >
                           {isPending ? "Saving..." : "Mark Paid"}
                         </button>
+                        {invoice.status !== "paid" && invoice.status !== "draft" && (
+                          <button
+                            type="button"
+                            onClick={() => setNudgeTarget(row)}
+                            className={SECONDARY_SMALL_BUTTON}
+                          >
+                            Nudge
+                          </button>
+                        )}
+                        <NudgeBadge label={nudgeLabelFor(invoice.id)} />
                       </div>
                     </td>
                   </tr>
@@ -358,7 +422,37 @@ export function ReceivablesView({ openChase }: ReceivablesViewProps) {
           onCreated={notifyWorkspaceChanged}
         />
       )}
+
+      <InvoiceNudgeModal
+        open={nudgeTarget !== null}
+        onClose={() => setNudgeTarget(null)}
+        invoice={nudgeTarget?.invoice ?? null}
+        clientName={nudgeTarget?.clientName ?? ""}
+        daysOverdue={nudgeTarget?.days ?? 0}
+        onLogged={() => {
+          if (nudgeTarget) void refetchNudges(nudgeTarget.invoice);
+        }}
+      />
     </section>
+  );
+}
+
+/** Small per-row badge for the latest nudge. Only the time part uses mono digits. */
+function NudgeBadge({ label }: { label: string | null }) {
+  if (!label) return null;
+  const match = /^(Nudged\s+)(.+?)(\s+\(.+\))$/.exec(label);
+  return (
+    <span className="inline-flex max-w-full break-words rounded-full border border-line bg-subtle px-2 py-0.5 text-xs text-ink-secondary">
+      {match ? (
+        <>
+          {match[1]}
+          <span className="font-mono tabular-nums">{match[2]}</span>
+          {match[3]}
+        </>
+      ) : (
+        label
+      )}
+    </span>
   );
 }
 
