@@ -29,8 +29,8 @@ const FOCUS_RING =
 const BUTTON_BASE = `inline-flex items-center justify-center rounded-lg font-medium transition-transform duration-150 ease-emphasis active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 ${FOCUS_RING}`;
 const PRIMARY_BUTTON = `${BUTTON_BASE} button-md bg-blue px-3 py-2 text-white hover:bg-blue/90`;
 const SECONDARY_BUTTON = `${BUTTON_BASE} button-md border border-line bg-surface px-3 py-2 text-ink hover:bg-subtle`;
-const SECONDARY_SMALL_BUTTON = `${BUTTON_BASE} border border-line bg-surface px-2.5 py-1 text-xs text-ink hover:bg-subtle`;
-const GHOST_EMERALD_BUTTON = `${BUTTON_BASE} px-2.5 py-1 text-xs text-emerald hover:bg-emerald/5`;
+const SECONDARY_SMALL_BUTTON = `${BUTTON_BASE} min-h-11 sm:min-h-0 border border-line bg-surface px-2.5 py-1 text-xs text-ink hover:bg-subtle`;
+const GHOST_EMERALD_BUTTON = `${BUTTON_BASE} min-h-11 sm:min-h-0 px-2.5 py-1 text-xs text-emerald hover:bg-emerald/5`;
 const INPUT_CLASS = `mt-1 block h-9 w-full rounded-lg border border-line bg-surface px-3 text-sm text-ink focus:border-blue focus:outline-none ${FOCUS_RING}`;
 
 const BUCKET_STYLES: Record<AgingBucketLabel, string> = {
